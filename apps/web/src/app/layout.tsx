@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Manrope, Source_Serif_4 } from "next/font/google";
 import TrackingPixels from "@/components/TrackingPixels";
+import Link from "next/link";
 import "./globals.css";
 
-const inter = Inter({ 
+const manrope = Manrope({ 
   subsets: ["latin"],
-  variable: "--font-inter", 
+  variable: "--font-manrope", 
+});
+
+const sourceSerif4 = Source_Serif_4({
+  subsets: ["latin"],
+  variable: "--font-source-serif-4",
 });
 
 export const metadata: Metadata = {
@@ -33,20 +39,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${inter.variable} font-sans min-h-screen flex flex-col`}>
+      <body className={`${manrope.variable} ${sourceSerif4.variable} font-sans min-h-screen flex flex-col`}>
         <header className="fixed top-0 w-full z-50 glass-panel border-b-0">
           <div className="container mx-auto px-4 h-20 flex items-center justify-between">
-            <div className="text-2xl font-bold text-white tracking-tighter">
+            <Link href="/" className="text-2xl font-bold text-white tracking-tighter hover:opacity-90 transition-opacity">
               Belihuloya<span className="text-orange-500">Safari</span>
-            </div>
+            </Link>
             <nav className="hidden md:flex gap-8 text-sm font-medium text-slate-300">
-              <a href="#tours" className="hover:text-orange-400 transition-colors">Tours</a>
-              <a href="#about" className="hover:text-orange-400 transition-colors">About</a>
-              <a href="#safety" className="hover:text-orange-400 transition-colors">Safety</a>
+              <Link href="/" className="hover:text-orange-400 transition-colors">Home</Link>
+              <Link href="/tours" className="hover:text-orange-400 transition-colors">Tours</Link>
+              <Link href="/#about" className="hover:text-orange-400 transition-colors">About</Link>
             </nav>
-            <a href="#book" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-full font-semibold transition-all shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:shadow-[0_0_25px_rgba(249,115,22,0.6)]">
+            <Link href="/tours" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-full font-semibold transition-all shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:shadow-[0_0_25px_rgba(249,115,22,0.6)]">
               Book Now
-            </a>
+            </Link>
           </div>
         </header>
         

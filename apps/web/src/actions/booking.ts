@@ -1,7 +1,6 @@
 "use server";
 
 import { adminDb, Booking, BookingStatus } from "@belihuloya/core";
-import { FieldValue } from "firebase-admin/firestore";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -10,10 +9,12 @@ const MAX_JEEPS_PER_DAY = 5; // Configurable global max limit
 export async function createBooking(data: {
   tourId: string;
   tourName: string;
+  tourType: 'private' | 'group';
+  includesMeals: boolean;
+  pricingBasis: 'full_tour' | 'per_person';
   dateStr: string; // YYYY-MM-DD format
   pax: number;
   totalPrice: number;
-  addons: string[];
   customerName: string;
   customerEmail: string;
   customerPhone: string;
@@ -46,10 +47,12 @@ export async function createBooking(data: {
         customerPhone: data.customerPhone,
         date: new Date(data.dateStr), // Using JS Date for admin SDK
         pax: data.pax,
+        tourType: data.tourType,
+        includesMeals: data.includesMeals,
+        pricingBasis: data.pricingBasis,
         totalPrice: data.totalPrice,
-        addons: data.addons,
         status: "pending" as BookingStatus,
-        createdAt: FieldValue.serverTimestamp() as any,
+        createdAt: new Date(),
         notes: data.notes || "",
       };
 

@@ -1,20 +1,19 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Calendar, ChevronRight, Info, Users, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Info, Loader2, Users, CarFront } from "lucide-react";
 import { createBooking } from "@/actions/booking";
-import { Booking } from "@belihuloya/core";
+import { Tour } from "@belihuloya/core";
 
 interface BookingWidgetProps {
-  tourId: string;
-  tourName: string;
-  price: number;
-  currency: string;
-  priceType: string;
+  tour: Tour;
 }
 
-export default function BookingWidget({ tourId, tourName, price, currency, priceType }: BookingWidgetProps) {
-  const [date, setDate] = useState("");
+export default function BookingWidget({ tour }: BookingWidgetProps) {
+  const [includesMeals, setIncludesMeals] = useState<boolean>(true);
+
+  // Default to the scheduled date if it's a group tour, otherwise empty
+  const [date, setDate] = useState(tour.tourType === 'group' && tour.scheduledDate ? tour.scheduledDate.split('T')[0] : "");
   const [pax, setPax] = useState(1);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -24,7 +23,28 @@ export default function BookingWidget({ tourId, tourName, price, currency, price
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  const totalPrice = price * pax; // Assuming per person pricing for now
+  // Calculate Price Logic
+  let totalPrice = 0;
+  let pricingBasis: 'full_tour' | 'per_person' = 'per_person';
+
+  let cabsNeeded = 1;
+  if (tour.tourType === 'private') {
+    cabsNeeded = Math.ceil(pax / 8);
+    let pricePerCab = 0;
+    if (includesMeals && tour.pricing.fullTourPriceWithMeals) {
+      pricePerCab = tour.pricing.fullTourPriceWithMeals;
+    } else {
+      pricePerCab = tour.pricing.fullTourPrice || (tour.pricing.perPersonFee * 8);
+    }
+    totalPrice = pricePerCab * cabsNeeded;
+    pricingBasis = 'full_tour';
+  } else {
+    // Group Tour
+    totalPrice = (includesMeals && tour.pricing.perPersonWithMeals)
+      ? tour.pricing.perPersonWithMeals * pax 
+      : tour.pricing.perPersonFee * pax;
+    pricingBasis = 'per_person';
+  }
 
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,12 +57,14 @@ export default function BookingWidget({ tourId, tourName, price, currency, price
     setIsSubmitting(true);
 
     const result = await createBooking({
-      tourId,
-      tourName,
+      tourId: tour.id || tour.slug,
+      tourName: tour.title,
+      tourType: tour.tourType,
+      includesMeals: !!tour.pricing.perPersonWithMeals ? includesMeals : false,
+      pricingBasis,
       dateStr: date,
       pax,
       totalPrice,
-      addons: [],
       customerName: name,
       customerEmail: email,
       customerPhone: phone,
@@ -67,9 +89,9 @@ export default function BookingWidget({ tourId, tourName, price, currency, price
         </div>
         <h3 className="text-2xl font-bold text-white mb-2">Booking Requested!</h3>
         <p className="text-slate-300 text-sm mb-6">
-          We have received your reservation for {tourName} on {date}. An email confirmation has been sent.
+          We have received your reservation for {tour.title} on {date}. An email confirmation has been sent.
         </p>
-        <p className="text-orange-400 font-semibold mb-2">Total to pay on arrival: {totalPrice.toLocaleString()} {currency}</p>
+        <p className="text-orange-400 font-semibold mb-2">Total to pay on arrival: {totalPrice.toLocaleString()} LKR</p>
         <button 
           onClick={() => setSuccess(false)}
           className="w-full mt-4 bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-xl font-bold transition-colors"
@@ -83,15 +105,45 @@ export default function BookingWidget({ tourId, tourName, price, currency, price
   return (
     <div className="sticky top-28 glass-panel p-8 rounded-3xl border border-orange-500/20 shadow-2xl">
       <h3 className="text-2xl font-bold text-white mb-2">Book Your Adventure</h3>
-      <p className="text-slate-400 text-sm mb-6">Secure your jeep today.</p>
+      <p className="text-slate-400 text-sm mb-6">Secure your spot today.</p>
       
+      {/* Tour Options Selector */}
+      <div className="space-y-4 mb-6">
+        {!!tour.pricing.perPersonWithMeals && (
+          <div>
+            <label className="text-xs text-slate-400 font-semibold uppercase mb-2 block">Meal Options</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button 
+                type="button"
+                onClick={() => setIncludesMeals(true)}
+                className={`p-2 rounded-lg border text-sm transition-colors ${includesMeals ? 'bg-blue-500/20 border-blue-500 text-blue-400' : 'bg-slate-900 border-slate-800 text-slate-400'}`}
+              >
+                With Meals
+              </button>
+              <button 
+                type="button"
+                onClick={() => setIncludesMeals(false)}
+                className={`p-2 rounded-lg border text-sm transition-colors ${!includesMeals ? 'bg-blue-500/20 border-blue-500 text-blue-400' : 'bg-slate-900 border-slate-800 text-slate-400'}`}
+              >
+                Without Meals
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
       <div className="bg-slate-950/50 p-6 rounded-2xl mb-8 border border-slate-800">
         <div className="flex justify-between items-end mb-2">
-          <span className="text-slate-400 text-sm">Total Estimate</span>
+          <div className="flex flex-col">
+            <span className="text-slate-400 text-sm">Total Estimate</span>
+            {tour.tourType === 'private' && cabsNeeded > 1 && (
+              <span className="text-xs text-orange-400 font-medium mt-1">Requires {cabsNeeded} Cabs (Max 8 per cab)</span>
+            )}
+          </div>
           <span className="text-3xl font-black text-white">{totalPrice.toLocaleString()}</span>
         </div>
         <div className="flex justify-end">
-          <span className="text-orange-500 font-bold">{currency}</span>
+          <span className="text-orange-500 font-bold">LKR</span>
         </div>
       </div>
 
@@ -102,12 +154,15 @@ export default function BookingWidget({ tourId, tourName, price, currency, price
           </div>
         )}
         
-        <div className="bg-slate-900 p-2 rounded-xl border border-slate-700 relative focus-within:border-orange-500 transition-colors">
-          <label className="text-xs text-slate-500 absolute top-2 left-4 font-semibold uppercase">Select Date</label>
+        <div className={`bg-slate-900 p-2 rounded-xl border border-slate-700 relative transition-colors ${tour.tourType === 'private' ? 'focus-within:border-orange-500' : 'opacity-70'}`}>
+          <label className="text-xs text-slate-500 absolute top-2 left-4 font-semibold uppercase">
+            {tour.tourType === 'group' ? 'Scheduled Date' : 'Select Date'}
+          </label>
           <input 
             type="date" 
             min={new Date().toISOString().split("T")[0]}
             required
+            readOnly={tour.tourType === 'group'}
             value={date}
             onChange={(e) => setDate(e.target.value)}
             className="w-full bg-transparent text-white pt-6 pb-2 px-4 focus:outline-none placeholder-slate-600 font-medium" 
@@ -119,10 +174,10 @@ export default function BookingWidget({ tourId, tourName, price, currency, price
            <input 
             type="number" 
             min="1"
-            max="10"
+            max="100"
             required
             value={pax}
-            onChange={(e) => setPax(parseInt(e.target.value))}
+            onChange={(e) => setPax(parseInt(e.target.value) || 1)}
             className="w-full bg-transparent text-white pt-6 pb-2 px-4 focus:outline-none font-medium" 
           />
         </div>

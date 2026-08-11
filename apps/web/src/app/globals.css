@@ -6,12 +6,17 @@
   --color-dark: #0f172a;
   --color-dark-lighter: #1e293b;
   
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-manrope);
+  --font-serif: var(--font-source-serif-4);
 }
 
 @layer base {
   body {
     @apply bg-slate-950 text-slate-50 antialiased selection:bg-orange-500/30;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif tracking-tight;
   }
 }
 

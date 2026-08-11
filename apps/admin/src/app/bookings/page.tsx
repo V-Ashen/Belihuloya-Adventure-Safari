@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getBookings, updateBookingStatus } from "@/actions/admin";
-import { Loader2, Search, Filter } from "lucide-react";
+import { Loader2, Search, Filter, Calendar } from "lucide-react";
 
 export default function BookingsManager() {
   const [bookings, setBookings] = useState<any[]>([]);
@@ -89,7 +89,15 @@ export default function BookingsManager() {
                   </td>
                   <td className="p-4">
                     <div className="text-slate-200 font-medium">{b.tourName}</div>
-                    <div className="text-xs text-orange-400 font-semibold">{new Date(b.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' })}</div>
+                    <div className="text-xs text-orange-400 font-semibold mb-1">{new Date(b.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' })}</div>
+                    <div className="flex gap-2">
+                      <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700 uppercase tracking-wider">{b.tourType}</span>
+                      {b.tourType === 'group' && (
+                        <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700 uppercase tracking-wider">
+                          {b.includesMeals ? 'With Meals' : 'No Meals'}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="p-4 text-slate-300">{b.pax}</td>
                   <td className="p-4 text-slate-200 font-bold">{b.totalPrice.toLocaleString()} LKR</td>
