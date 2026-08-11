@@ -11,7 +11,11 @@ export async function getSettings(): Promise<SiteSettings> {
     const docSnap = await docRef.get();
     
     if (docSnap.exists) {
-      return { id: docSnap.id, ...docSnap.data() } as SiteSettings;
+      const data = docSnap.data();
+      if (data?.updatedAt && typeof data.updatedAt.toDate === 'function') {
+        data.updatedAt = data.updatedAt.toDate();
+      }
+      return { id: docSnap.id, ...data } as SiteSettings;
     }
 
     // Default settings if none exist

@@ -63,10 +63,10 @@ export default async function Home() {
         {/* Hero Content */}
         <div className="relative z-20 container mx-auto px-6 py-16 max-w-6xl">
           {/* GPS coordinate line */}
-          <p className="text-[#f97316] text-xs tracking-[0.25em] uppercase font-bold mb-6 flex items-center gap-2 font-mono drop-shadow-md">
-            <span className="w-2 h-2 rounded-full bg-[#f97316] animate-pulse inline-block" />
-            6.8137° N, 80.8188° E — SABARAGAMUWA HILL COUNTRY
-          </p>
+          <div className="text-[#f97316] text-xs sm:text-sm tracking-wider md:tracking-[0.25em] uppercase font-bold mb-6 flex flex-wrap items-center gap-2 md:gap-3 font-mono drop-shadow-md">
+            <span className="w-2 h-2 rounded-full bg-[#f97316] animate-pulse shrink-0" />
+            <span>6.8137° N, 80.8188° E <span className="hidden sm:inline">—</span><br className="sm:hidden" /> SABARAGAMUWA HILL COUNTRY</span>
+          </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black uppercase leading-[1.05] tracking-tight mb-6 font-display drop-shadow-lg">
             <span className="text-white block">CHASE THE</span>

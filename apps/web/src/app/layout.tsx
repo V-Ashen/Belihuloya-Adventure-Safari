@@ -1,6 +1,14 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Oswald, Inter, JetBrains_Mono } from "next/font/google";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 import TrackingPixels from "@/components/TrackingPixels";
+import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import "./globals.css";
 import { getSettings } from "@/actions/settings";
@@ -52,39 +60,7 @@ export default async function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className={`${oswald.variable} ${inter.variable} ${jetbrainsMono.variable} font-sans min-h-screen flex flex-col bg-[#0b120c]`}>
-        {/* Navbar */}
-        <header className="fixed top-0 w-full z-50 bg-[#0b120c]/95 backdrop-blur-md border-b border-[#18261a]">
-          <div className="container mx-auto px-6 h-20 flex items-center justify-between">
-            {/* Logo */}
-            <Link href="/" className="flex flex-col leading-none">
-              <span className="text-white font-extrabold text-2xl tracking-wider uppercase font-display">BELIHULOYA</span>
-              <span className="text-[10px] tracking-[0.25em] text-[#647466] uppercase font-bold font-mono mt-1">ADVENTURE SAFARI · SRI LANKA</span>
-            </Link>
-
-            {/* Nav Links */}
-            <nav className="hidden md:flex gap-10 text-sm font-semibold tracking-wide">
-              <Link href="/" className="text-orange-500 border-b-2 border-orange-500 pb-1 font-mono transition-colors">Home</Link>
-              <Link href="/tours" className="text-[#a3b3a5] hover:text-white font-mono transition-colors">Tours</Link>
-              <Link href="/#about" className="text-[#a3b3a5] hover:text-white font-mono transition-colors">About</Link>
-              <Link href="/#contact" className="text-[#a3b3a5] hover:text-white font-mono transition-colors">Contact</Link>
-            </nav>
-
-            {/* CTA Button */}
-            <Link
-              href="/tours"
-              className="hidden md:inline-flex items-center bg-[#f97316] hover:bg-[#ea580c] text-black text-xs font-black tracking-[0.15em] uppercase px-7 py-3.5 rounded-none font-mono transition-colors"
-            >
-              BOOK YOUR ADVENTURE
-            </Link>
-
-            {/* Mobile menu icon */}
-            <button className="md:hidden text-white">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
-        </header>
+        <Navbar />
 
         <main className="flex-1">
           {children}

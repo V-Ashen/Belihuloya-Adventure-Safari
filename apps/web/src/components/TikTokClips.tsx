@@ -18,9 +18,9 @@ export default function TikTokClips({ clips }: { clips: TikTokClip[] }) {
           </h2>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="flex md:grid md:grid-cols-4 gap-4 overflow-x-auto snap-x snap-mandatory pb-6 -mx-6 px-6 md:overflow-visible md:snap-none md:pb-0 md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {clips.slice(0, 4).map((clip) => (
-            <div key={clip.id} className="relative group bg-black rounded-none border border-[#1a281c] overflow-hidden aspect-[9/16] cursor-pointer">
+            <div key={clip.id} className="relative group bg-black rounded-none border border-[#1a281c] overflow-hidden aspect-[9/16] cursor-pointer w-[200px] sm:w-[240px] md:w-auto shrink-0 snap-center">
               <video 
                 src={clip.url} 
                 className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"
