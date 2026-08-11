@@ -3,6 +3,7 @@ import { Oswald, Inter, JetBrains_Mono } from "next/font/google";
 import TrackingPixels from "@/components/TrackingPixels";
 import Link from "next/link";
 import "./globals.css";
+import { getSettings } from "@/actions/settings";
 
 const oswald = Oswald({ 
   subsets: ["latin"],
@@ -37,11 +38,17 @@ export const metadata: Metadata = {
   }
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const settings = await getSettings();
+  
+  const fbLink = settings.socialLinks?.facebook || "https://www.facebook.com/share/1QKUp8zJvH/";
+  const instaLink = settings.socialLinks?.instagram || "https://www.instagram.com/belihuloya_adventure_safari?igsh=MWx5azl3aThzanNteg==";
+  const tiktokLink = settings.socialLinks?.tiktok || "https://www.tiktok.com/@b.a.s_2940?_r=1&_t=ZS-98gJ8mPjJCh";
+  const ytLink = settings.socialLinks?.youtube || "http://www.youtube.com/@Belihuloyaadventuresafari";
   return (
     <html lang="en" className="scroll-smooth">
       <body className={`${oswald.variable} ${inter.variable} ${jetbrainsMono.variable} font-sans min-h-screen flex flex-col bg-[#0b120c]`}>
@@ -133,10 +140,10 @@ export default function RootLayout({
                 <h4 className="text-[10px] tracking-[0.3em] text-[#647466] uppercase font-bold mb-6 font-mono">CONTACT & SOCIALS</h4>
                 <ul className="space-y-3 text-sm text-[#a3b3a5] font-mono">
                   <li><a href="https://wa.me/94XXXXXXXXX" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">WhatsApp Booking</a></li>
-                  <li><a href="https://www.facebook.com/share/1QKUp8zJvH/" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Facebook</a></li>
-                  <li><a href="https://www.instagram.com/belihuloya_adventure_safari?igsh=MWx5azl3aThzanNteg==" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Instagram</a></li>
-                  <li><a href="https://www.tiktok.com/@b.a.s_2940?_r=1&_t=ZS-98gJ8mPjJCh" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">TikTok</a></li>
-                  <li><a href="http://www.youtube.com/@Belihuloyaadventuresafari" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">YouTube</a></li>
+                  <li><a href={fbLink} target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Facebook</a></li>
+                  <li><a href={instaLink} target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Instagram</a></li>
+                  <li><a href={tiktokLink} target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">TikTok</a></li>
+                  <li><a href={ytLink} target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">YouTube</a></li>
                 </ul>
               </div>
             </div>

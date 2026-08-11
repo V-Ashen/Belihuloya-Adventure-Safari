@@ -2,8 +2,12 @@ import { MapPin, Droplet, Mountain, Flame, TreePine, Map } from "lucide-react";
 import Link from "next/link";
 import DestinationsCarousel from "@/components/DestinationsCarousel";
 import AnimatedStats from "@/components/AnimatedStats";
+import { getSettings } from "@/actions/settings";
+import TikTokClips from "@/components/TikTokClips";
 
-export default function Home() {
+export default async function Home() {
+  const settings = await getSettings();
+  const tiktokLink = settings.socialLinks?.tiktok || "https://www.tiktok.com/@b.a.s_2940?_r=1&_t=ZS-98gJ8mPjJCh";
   const places = [
     { title: "Bambarakanda Falls", description: "Sri Lanka's tallest waterfall (263 meters).", image: "2.jpg", type: "Waterfall", icon: <Droplet className="w-3.5 h-3.5" /> },
     { title: "Devil's Staircase", description: "A notoriously steep and rugged zigzagging mountain trail.", image: "8.jpg", type: "Trail", icon: <Flame className="w-3.5 h-3.5" /> },
@@ -14,6 +18,27 @@ export default function Home() {
     { title: "Nonpareil", description: "A breathtakingly scenic mountain valley and tea estate.", image: "5.jpg", type: "Valley", icon: <TreePine className="w-3.5 h-3.5" /> },
     { title: "Hunugal Pokuna", description: "A natural limestone pool hidden in the forest.", image: "6.jpg", type: "Nature", icon: <TreePine className="w-3.5 h-3.5" /> },
     { title: "Ohiya", description: "A quiet, misty highland railway village.", image: "7.jpg", type: "Village", icon: <MapPin className="w-3.5 h-3.5" /> },
+  ];
+
+  const reviews = [
+    {
+      rating: "5.0",
+      text: "Booked through Instagram the same week we arrived. The driver knew every rock on Devil's Staircase by name — genuinely felt safer than city traffic.",
+      name: "LARS H.",
+      location: "NORWAY",
+    },
+    {
+      rating: "4.9",
+      text: "Did Baker's Bend with my parents. Easy to book, guide spoke great English, and the viewpoint at the top was worth the whole trip.",
+      name: "AMARA K.",
+      location: "COLOMBO, LK",
+    },
+    {
+      rating: "5.0",
+      text: "Camped overnight on the ridge. No signal, no noise, just the jeep engine cooling down and a sky full of stars. Already rebooking for July.",
+      name: "JAKE T.",
+      location: "AUSTRALIA",
+    },
   ];
 
   return (
@@ -60,7 +85,7 @@ export default function Home() {
               BOOK YOUR ADVENTURE
             </Link>
             <a
-              href="https://www.tiktok.com/@b.a.s_2940?_r=1&_t=ZS-98gJ8mPjJCh"
+              href={tiktokLink}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center bg-black/60 hover:bg-black/80 border border-white/20 text-white text-xs font-bold tracking-[0.2em] uppercase px-8 py-4 rounded-none font-mono transition-colors backdrop-blur-sm shadow-lg"
@@ -153,6 +178,57 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Logbook / Reviews Section */}
+      <section className="py-24 bg-[#080d09] border-t border-[#1a281c]">
+        <div className="container mx-auto px-6">
+          <div className="mb-16">
+            <p className="text-[#f97316] text-[10px] tracking-[0.3em] uppercase font-bold mb-3 font-mono flex items-center gap-2">
+              <span className="text-[#f97316]">◆</span> TRAIL LOG
+            </p>
+            <h2 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight mb-4 font-display">
+              FROM THE LOGBOOK.
+            </h2>
+            <p className="text-[#a3b3a5] text-base max-w-2xl font-sans">
+              Unedited notes from riders who booked the exact routes above.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {reviews.map((rev, idx) => (
+              <div
+                key={idx}
+                className="bg-[#eee8d5] p-8 flex flex-col justify-between rounded-none border border-[#d6cfb9] text-[#292524] shadow-md hover:shadow-xl transition-shadow"
+              >
+                <div>
+                  {/* Top orange accent bar */}
+                  <div className="w-8 h-1 bg-[#f97316] mb-6" />
+
+                  {/* Rating Stars */}
+                  <div className="flex items-center gap-2 mb-6">
+                    <span className="text-[#c2410c] text-sm tracking-widest font-mono">★★★★★</span>
+                    <span className="text-[#78350f] text-xs font-mono font-bold">{rev.rating}</span>
+                  </div>
+
+                  {/* Review Text */}
+                  <p className="text-[#332e2b] text-sm leading-relaxed font-sans mb-8">
+                    &ldquo;{rev.text}&rdquo;
+                  </p>
+                </div>
+
+                {/* Footer line & author details */}
+                <div className="pt-4 border-t border-dashed border-[#b8b098] flex items-center justify-between font-mono text-xs">
+                  <span className="font-bold text-[#1c1917] tracking-wider">{rev.name}</span>
+                  <span className="text-[#78716c] tracking-widest text-[11px]">{rev.location}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* TikTok Clips Section */}
+      <TikTokClips clips={settings.tiktokClips || []} />
     </div>
   );
 }

@@ -51,3 +51,25 @@ export interface Inventory {
   jeepsBooked: number; // Current number of jeeps booked for this day
   maxJeeps: number; // The maximum capacity for this specific day
 }
+
+export interface TikTokClip {
+  id: string;
+  publicId: string;
+  url: string;
+}
+
+export interface SiteSettings {
+  id?: string;
+  socialLinks: {
+    facebook: string;
+    tiktok: string;
+    youtube: string;
+    instagram: string;
+  };
+  pixelIds: {
+    meta: string;
+    tiktok: string;
+  };
+  tiktokClips: TikTokClip[];
+  updatedAt?: Timestamp | Date;
+}

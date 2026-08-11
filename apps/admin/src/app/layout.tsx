@@ -39,6 +39,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/customers" className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium opacity-50 cursor-not-allowed">
             <Users className="w-5 h-5 text-pink-500" /> Customers
           </Link>
+          <Link href="/settings" className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium">
+            <Settings className="w-5 h-5 text-gray-400" /> Settings
+          </Link>
         </nav>
         
         <div className="p-4 border-t border-slate-800">
