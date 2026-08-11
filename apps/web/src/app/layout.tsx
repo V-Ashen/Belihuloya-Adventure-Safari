@@ -1,17 +1,22 @@
 import type { Metadata } from "next";
-import { Manrope, Source_Serif_4 } from "next/font/google";
+import { Oswald, Inter, JetBrains_Mono } from "next/font/google";
 import TrackingPixels from "@/components/TrackingPixels";
 import Link from "next/link";
 import "./globals.css";
 
-const manrope = Manrope({ 
+const oswald = Oswald({ 
   subsets: ["latin"],
-  variable: "--font-manrope", 
+  variable: "--font-oswald", 
 });
 
-const sourceSerif4 = Source_Serif_4({
+const inter = Inter({ 
   subsets: ["latin"],
-  variable: "--font-source-serif-4",
+  variable: "--font-inter", 
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
 });
 
 export const metadata: Metadata = {
@@ -39,32 +44,111 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${manrope.variable} ${sourceSerif4.variable} font-sans min-h-screen flex flex-col`}>
-        <header className="fixed top-0 w-full z-50 glass-panel border-b-0">
-          <div className="container mx-auto px-4 h-20 flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold text-white tracking-tighter hover:opacity-90 transition-opacity">
-              Belihuloya<span className="text-orange-500">Safari</span>
+      <body className={`${oswald.variable} ${inter.variable} ${jetbrainsMono.variable} font-sans min-h-screen flex flex-col bg-[#0b120c]`}>
+        {/* Navbar */}
+        <header className="fixed top-0 w-full z-50 bg-[#0b120c]/95 backdrop-blur-md border-b border-[#18261a]">
+          <div className="container mx-auto px-6 h-20 flex items-center justify-between">
+            {/* Logo */}
+            <Link href="/" className="flex flex-col leading-none">
+              <span className="text-white font-extrabold text-2xl tracking-wider uppercase font-display">BELIHULOYA</span>
+              <span className="text-[10px] tracking-[0.25em] text-[#647466] uppercase font-bold font-mono mt-1">ADVENTURE SAFARI · SRI LANKA</span>
             </Link>
-            <nav className="hidden md:flex gap-8 text-sm font-medium text-slate-300">
-              <Link href="/" className="hover:text-orange-400 transition-colors">Home</Link>
-              <Link href="/tours" className="hover:text-orange-400 transition-colors">Tours</Link>
-              <Link href="/#about" className="hover:text-orange-400 transition-colors">About</Link>
+
+            {/* Nav Links */}
+            <nav className="hidden md:flex gap-10 text-sm font-semibold tracking-wide">
+              <Link href="/" className="text-orange-500 border-b-2 border-orange-500 pb-1 font-mono transition-colors">Home</Link>
+              <Link href="/tours" className="text-[#a3b3a5] hover:text-white font-mono transition-colors">Tours</Link>
+              <Link href="/#about" className="text-[#a3b3a5] hover:text-white font-mono transition-colors">About</Link>
+              <Link href="/#contact" className="text-[#a3b3a5] hover:text-white font-mono transition-colors">Contact</Link>
             </nav>
-            <Link href="/tours" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-full font-semibold transition-all shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:shadow-[0_0_25px_rgba(249,115,22,0.6)]">
-              Book Now
+
+            {/* CTA Button */}
+            <Link
+              href="/tours"
+              className="hidden md:inline-flex items-center bg-[#f97316] hover:bg-[#ea580c] text-black text-xs font-black tracking-[0.15em] uppercase px-7 py-3.5 rounded-none font-mono transition-colors"
+            >
+              BOOK YOUR ADVENTURE
             </Link>
+
+            {/* Mobile menu icon */}
+            <button className="md:hidden text-white">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
           </div>
         </header>
-        
+
         <main className="flex-1">
           {children}
         </main>
 
-        <footer className="bg-slate-950 py-12 border-t border-slate-800">
-          <div className="container mx-auto px-4 text-center text-slate-400">
-            <p>© {new Date().getFullYear()} Belihuloya Adventure Safari. All rights reserved.</p>
+        {/* CTA Banner */}
+        <section className="bg-[#f97316] py-20 text-center px-4">
+          <h2 className="text-4xl md:text-6xl font-black text-[#0b120c] uppercase tracking-tight leading-none mb-4 font-display">
+            EVERY JEEP HAS A LIMIT.<br />
+            YOURS MIGHT ALREADY BE BOOKED.
+          </h2>
+          <p className="text-[#3d1a00]/80 text-base mb-10 max-w-md mx-auto font-sans">
+            Only 5 jeeps run per day across all routes. Lock your date before someone else does.
+          </p>
+          <a
+            href="https://wa.me/94XXXXXXXXX"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-3 bg-[#0b120c] hover:bg-[#050905] text-white text-xs font-bold tracking-[0.2em] uppercase px-10 py-4 rounded-none transition-colors font-mono"
+          >
+            MESSAGE US ON WHATSAPP
+          </a>
+        </section>
+
+        {/* Footer */}
+        <footer id="contact" className="bg-[#070c08] pt-16 pb-0 border-t border-[#18261a]">
+          <div className="container mx-auto px-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 pb-16">
+              {/* Col 1 — Brand */}
+              <div>
+                <div className="flex flex-col leading-none mb-5">
+                  <span className="text-white font-black text-xl tracking-wider uppercase font-display">BELIHULOYA</span>
+                  <span className="text-[10px] tracking-[0.25em] text-[#647466] uppercase font-mono mt-1">ADVENTURE SAFARI · SRI LANKA</span>
+                </div>
+                <p className="text-[#809483] text-sm leading-relaxed max-w-xs font-sans">
+                  Extreme and scenic 4×4 off-road safaris through the Sabaragamuwa hill country. Bookings confirmed instantly, payment on arrival.
+                </p>
+              </div>
+
+              {/* Col 2 — Explore */}
+              <div>
+                <h4 className="text-[10px] tracking-[0.3em] text-[#647466] uppercase font-bold mb-6 font-mono">EXPLORE</h4>
+                <ul className="space-y-3 text-sm text-[#a3b3a5] font-mono">
+                  <li><Link href="/tours" className="hover:text-orange-500 transition-colors">Off-Road Safaris</Link></li>
+                  <li><Link href="/tours" className="hover:text-orange-500 transition-colors">Camping & Hiking</Link></li>
+                  <li><Link href="/tours" className="hover:text-orange-500 transition-colors">Group Tours</Link></li>
+                  <li><Link href="/tours" className="hover:text-orange-500 transition-colors">Private Tours</Link></li>
+                </ul>
+              </div>
+
+              {/* Col 3 — Contact & Socials */}
+              <div>
+                <h4 className="text-[10px] tracking-[0.3em] text-[#647466] uppercase font-bold mb-6 font-mono">CONTACT & SOCIALS</h4>
+                <ul className="space-y-3 text-sm text-[#a3b3a5] font-mono">
+                  <li><a href="https://wa.me/94XXXXXXXXX" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">WhatsApp Booking</a></li>
+                  <li><a href="https://www.facebook.com/share/1QKUp8zJvH/" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Facebook</a></li>
+                  <li><a href="https://www.instagram.com/belihuloya_adventure_safari?igsh=MWx5azl3aThzanNteg==" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Instagram</a></li>
+                  <li><a href="https://www.tiktok.com/@b.a.s_2940?_r=1&_t=ZS-98gJ8mPjJCh" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">TikTok</a></li>
+                  <li><a href="http://www.youtube.com/@Belihuloyaadventuresafari" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">YouTube</a></li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Bottom bar */}
+            <div className="border-t border-[#18261a] py-6 flex flex-col md:flex-row justify-between items-center gap-2">
+              <p className="text-[#647466] text-xs tracking-wider uppercase font-mono">© {new Date().getFullYear()} BELIHULOYA ADVENTURE SAFARI</p>
+              <p className="text-[#647466] text-xs tracking-wider uppercase font-mono">SABARAGAMUWA PROVINCE · SRI LANKA</p>
+            </div>
           </div>
         </footer>
+
         <TrackingPixels />
       </body>
     </html>

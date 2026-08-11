@@ -6,8 +6,9 @@
   --color-dark: #0f172a;
   --color-dark-lighter: #1e293b;
   
-  --font-sans: var(--font-manrope);
-  --font-serif: var(--font-source-serif-4);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-oswald);
+  --font-mono: var(--font-mono);
 }
 
 @layer base {
@@ -16,7 +17,8 @@
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif tracking-tight;
+    font-family: var(--font-oswald), sans-serif;
+    @apply tracking-tight uppercase;
   }
 }
 

@@ -64,12 +64,12 @@ export default function DestinationsCarousel({ places }: DestinationsCarouselPro
 
             <div className="absolute inset-x-0 bottom-0 p-6 z-20 flex flex-col justify-end h-full">
               <div className="mb-3 transform transition-transform duration-500 translate-y-2 group-hover:translate-y-0 opacity-80 group-hover:opacity-100">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-xs font-semibold text-green-400">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/80 backdrop-blur-sm border border-slate-700/50 text-[11px] font-bold text-green-400 font-mono tracking-wider uppercase">
                   {place.icon} {place.type}
                 </span>
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2 transform transition-transform duration-500 group-hover:-translate-y-1">{place.title}</h3>
-              <p className="text-slate-300 text-sm leading-relaxed transform transition-all duration-500 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100">
+              <h3 className="text-2xl font-bold text-white mb-2 transform transition-transform duration-500 group-hover:-translate-y-1 font-display tracking-tight uppercase">{place.title}</h3>
+              <p className="text-slate-300 text-sm leading-relaxed transform transition-all duration-500 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 font-sans">
                 {place.description}
               </p>
             </div>
