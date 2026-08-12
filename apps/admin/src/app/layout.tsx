@@ -36,6 +36,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/tours" className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium">
             <Package className="w-5 h-5 text-purple-500" /> Tour CMS
           </Link>
+          <Link href="/fleet" className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium">
+            <Car className="w-5 h-5 text-emerald-500" /> Fleet Management
+          </Link>
           <Link href="/customers" className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium opacity-50 cursor-not-allowed">
             <Users className="w-5 h-5 text-pink-500" /> Customers
           </Link>

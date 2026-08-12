@@ -1,10 +1,9 @@
 "use server";
 
-import { adminDb, Booking, BookingStatus } from "@belihuloya/core";
+import { adminDb, Booking, BookingStatus, getMonthlyAvailability } from "@belihuloya/core";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const MAX_JEEPS_PER_DAY = 5; // Configurable global max limit
 
 export async function createBooking(data: {
   tourId: string;
@@ -21,9 +20,23 @@ export async function createBooking(data: {
   notes?: string;
 }) {
   try {
-    const inventoryRef = adminDb.collection("inventory").doc(data.dateStr);
     const bookingRef = adminDb.collection("bookings").doc(); // Create new ref
     
+    // Check global fleet availability first
+    const [year, month] = data.dateStr.split('-').map(Number);
+    const availabilityMap = await getMonthlyAvailability(year, month);
+    const dayAvail = availabilityMap[data.dateStr];
+    
+    if (!dayAvail) {
+      throw new Error("Unable to fetch availability for this date.");
+    }
+    
+    const jeepsNeeded = Math.ceil(data.pax / dayAvail.maxPaxPerJeep);
+    
+    if (dayAvail.remainingJeeps < jeepsNeeded) {
+      throw new Error(`Sorry, we don't have enough jeeps available on ${data.dateStr}. We need ${jeepsNeeded} jeeps for ${data.pax} passengers, but only ${dayAvail.remainingJeeps} are left.`);
+    }
+
     // Execute Firestore Transaction
     await adminDb.runTransaction(async (transaction) => {
       
@@ -68,18 +81,7 @@ export async function createBooking(data: {
         });
 
       } else {
-        const inventoryDoc = await transaction.get(inventoryRef);
-        
-        let currentBookings = 0;
-        if (inventoryDoc.exists) {
-          currentBookings = inventoryDoc.data()?.jeepsBooked || 0;
-        }
-
-        if (currentBookings >= MAX_JEEPS_PER_DAY) {
-          throw new Error("Sorry, we are fully booked for this date. Please choose another date.");
-        }
-
-        // 1. Create the booking document
+        // 1. Create the booking document for private tour
         const newBooking: Booking = {
           id: bookingRef.id,
           tourId: data.tourId,
@@ -87,7 +89,7 @@ export async function createBooking(data: {
           customerName: data.customerName,
           customerEmail: data.customerEmail,
           customerPhone: data.customerPhone,
-          date: new Date(data.dateStr), // Using JS Date for admin SDK
+          date: new Date(data.dateStr),
           pax: data.pax,
           tourType: data.tourType,
           includesMeals: data.includesMeals,
@@ -99,17 +101,6 @@ export async function createBooking(data: {
         };
 
         transaction.set(bookingRef, newBooking);
-
-        // 2. Update the inventory for that date
-        transaction.set(
-          inventoryRef,
-          {
-            date: data.dateStr,
-            jeepsBooked: currentBookings + 1,
-            maxJeeps: MAX_JEEPS_PER_DAY,
-          },
-          { merge: true }
-        );
       }
     });
 

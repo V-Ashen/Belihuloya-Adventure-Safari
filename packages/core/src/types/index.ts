@@ -58,12 +58,26 @@ export interface Booking {
   notes?: string;
 }
 
-// Track daily inventory of jeeps
+// Track daily inventory of jeeps (Legacy)
 export interface Inventory {
   id: string; // The ID should ideally be the date string e.g. "YYYY-MM-DD"
   date: string; 
   jeepsBooked: number; // Current number of jeeps booked for this day
   maxJeeps: number; // The maximum capacity for this specific day
+}
+
+export interface FleetSettings {
+  default_daily_jeeps: number;
+  max_pax_per_jeep: number;
+  updatedAt?: Timestamp | Date;
+}
+
+export interface DateOverride {
+  id?: string; // YYYY-MM-DD
+  dateStr: string;
+  maxJeeps: number;
+  reason?: string;
+  updatedAt?: Timestamp | Date;
 }
 
 export interface TikTokClip {
@@ -85,5 +99,6 @@ export interface SiteSettings {
     tiktok: string;
   };
   tiktokClips: TikTokClip[];
+  fleet?: FleetSettings;
   updatedAt?: Timestamp | Date;
 }

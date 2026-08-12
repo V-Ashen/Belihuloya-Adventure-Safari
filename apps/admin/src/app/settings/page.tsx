@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { getSettings, updateSettings } from "@/actions/settings";
 import { SiteSettings, TikTokClip } from "@belihuloya/core";
 import { CldUploadWidget } from "next-cloudinary";
-import { Save, Loader2, Trash2, Video, Link as LinkIcon, Activity } from "lucide-react";
+import { Save, Loader2, Trash2, Video, Link as LinkIcon, Activity, Settings as SettingsIcon } from "lucide-react";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
@@ -172,6 +172,39 @@ export default function SettingsPage() {
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
                 placeholder="https://instagram.com/..."
               />
+            </div>
+          </div>
+        </section>
+
+        {/* Fleet Settings Section */}
+        <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+          <div className="flex items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+            <SettingsIcon className="text-emerald-500 w-6 h-6" />
+            <h2 className="text-xl font-bold text-white">Global Fleet Settings</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-bold text-slate-300 mb-2">Default Daily Jeeps</label>
+              <input
+                type="number"
+                min="1"
+                value={settings.fleet?.default_daily_jeeps || 5}
+                onChange={e => setSettings({...settings, fleet: {...(settings.fleet || { max_pax_per_jeep: 8, default_daily_jeeps: 5 }), default_daily_jeeps: parseInt(e.target.value) || 5}})}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-colors"
+              />
+              <p className="text-xs text-slate-500 mt-2">The total number of jeeps available across all tours daily.</p>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-300 mb-2">Max Pax per Jeep</label>
+              <input
+                type="number"
+                min="1"
+                value={settings.fleet?.max_pax_per_jeep || 8}
+                onChange={e => setSettings({...settings, fleet: {...(settings.fleet || { default_daily_jeeps: 5, max_pax_per_jeep: 8 }), max_pax_per_jeep: parseInt(e.target.value) || 8}})}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-colors"
+              />
+              <p className="text-xs text-slate-500 mt-2">Maximum number of passengers that fit in one physical jeep.</p>
             </div>
           </div>
         </section>
