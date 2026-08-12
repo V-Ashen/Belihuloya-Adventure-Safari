@@ -46,6 +46,10 @@ export default function BookingWidget({ tour }: BookingWidgetProps) {
     pricingBasis = 'per_person';
   }
 
+  const isGroup = tour.tourType === 'group';
+  const availableSeats = isGroup && tour.totalSeats ? tour.totalSeats - (tour.bookedSeats || 0) : null;
+  const isSoldOut = availableSeats !== null && availableSeats <= 0;
+
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!date || !name || !email || !phone) {
@@ -105,7 +109,15 @@ export default function BookingWidget({ tour }: BookingWidgetProps) {
   return (
     <div className="sticky top-28 glass-panel p-8 rounded-3xl border border-orange-500/20 shadow-2xl">
       <h3 className="text-2xl font-bold text-white mb-2">Book Your Adventure</h3>
-      <p className="text-slate-400 text-sm mb-6">Secure your spot today.</p>
+      <p className="text-slate-400 text-sm mb-6">
+        {isSoldOut ? (
+          <span className="text-red-400 font-bold bg-red-500/10 px-2 py-1 rounded">Fully Booked</span>
+        ) : availableSeats !== null ? (
+          <span className="text-orange-400 font-medium bg-orange-500/10 px-2 py-1 rounded">Only {availableSeats} seats left! Secure your spot.</span>
+        ) : (
+          "Secure your spot today."
+        )}
+      </p>
       
       {/* Tour Options Selector */}
       <div className="space-y-4 mb-6">
@@ -174,11 +186,18 @@ export default function BookingWidget({ tour }: BookingWidgetProps) {
            <input 
             type="number" 
             min="1"
-            max="100"
+            max={availableSeats !== null ? availableSeats : 100}
             required
+            disabled={isSoldOut}
             value={pax}
-            onChange={(e) => setPax(parseInt(e.target.value) || 1)}
-            className="w-full bg-transparent text-white pt-6 pb-2 px-4 focus:outline-none font-medium" 
+            onChange={(e) => {
+              let val = parseInt(e.target.value) || 1;
+              if (availableSeats !== null && val > availableSeats) {
+                val = availableSeats;
+              }
+              setPax(val);
+            }}
+            className="w-full bg-transparent text-white pt-6 pb-2 px-4 focus:outline-none font-medium disabled:opacity-50" 
           />
         </div>
 
@@ -220,11 +239,17 @@ export default function BookingWidget({ tour }: BookingWidgetProps) {
 
         <button 
           type="submit"
-          disabled={isSubmitting}
-          className="w-full mt-4 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white py-4 rounded-xl font-bold text-lg transition-all shadow-[0_0_20px_rgba(249,115,22,0.4)] flex justify-center items-center gap-2"
+          disabled={isSubmitting || isSoldOut}
+          className={`w-full mt-4 py-4 rounded-xl font-bold text-lg transition-all flex justify-center items-center gap-2 ${
+            isSoldOut 
+              ? 'bg-slate-800 text-slate-500 cursor-not-allowed' 
+              : 'bg-orange-500 hover:bg-orange-600 text-white shadow-[0_0_20px_rgba(249,115,22,0.4)] disabled:opacity-50'
+          }`}
         >
           {isSubmitting ? (
             <><Loader2 className="w-5 h-5 animate-spin" /> Processing...</>
+          ) : isSoldOut ? (
+            "Sold Out"
           ) : (
             "Complete Reservation"
           )}

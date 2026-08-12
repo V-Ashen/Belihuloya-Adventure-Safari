@@ -1,4 +1,4 @@
-import { getTourById } from "@/actions/tours";
+import { getTourById, getUniqueDestinations } from "@/actions/tours";
 import { notFound } from "next/navigation";
 import EditTourForm from "@/components/EditTourForm";
 
@@ -12,5 +12,8 @@ export default async function EditTourPage({ params }: { params: Promise<{ id: s
     notFound();
   }
 
-  return <EditTourForm tour={tour} />;
+  const presetsRes = await getUniqueDestinations();
+  const presetDestinations = presetsRes.success ? presetsRes.destinations || [] : [];
+
+  return <EditTourForm tour={tour} presetDestinations={presetDestinations} />;
 }

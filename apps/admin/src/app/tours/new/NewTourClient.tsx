@@ -1,26 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { updateTour } from "@/actions/tours";
-import { TourCategory, Tour } from "@belihuloya/core";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { createTour } from "@/actions/tours";
+import { TourCategory } from "@belihuloya/core";
 import { CldUploadWidget } from "next-cloudinary";
 import { Upload, X, Loader2, CarFront, Users, Plus } from "lucide-react";
 import Image from "next/image";
 
-export default function EditTourForm({ tour, presetDestinations = [] }: { tour: Tour, presetDestinations?: string[] }) {
+export default function NewTourClient({ presetDestinations = [] }: { presetDestinations?: string[] }) {
   const router = useRouter();
-  const tourType = tour.tourType; // locked
+  const searchParams = useSearchParams();
+  const tourType = searchParams.get("type") as 'private' | 'group' || 'private';
 
   const [isLoading, setIsLoading] = useState(false);
-  const [imageUrl, setImageUrl] = useState(tour.imageUrl || "");
-  const [features, setFeatures] = useState<string[]>(tour.features?.length > 0 ? tour.features : [""]);
-  const [category, setCategory] = useState<TourCategory>(tour.category || "day_tour");
+  const [imageUrl, setImageUrl] = useState("");
+  const [features, setFeatures] = useState<string[]>([""]);
+  const [category, setCategory] = useState<TourCategory>("day_tour");
   
   // Camping & Hiking specific state
-  const [providedItems, setProvidedItems] = useState<string[]>(tour.providedItems?.length ? tour.providedItems : [""]);
-  const [routeProgram, setRouteProgram] = useState<string[]>(tour.routeProgram?.length ? tour.routeProgram : [""]);
-  const [optionalAddons, setOptionalAddons] = useState<{name: string, priceLKR: number}[]>(tour.optionalAddons?.length ? tour.optionalAddons : [{name: "", priceLKR: 0}]);
+  const [providedItems, setProvidedItems] = useState<string[]>([""]);
+  const [routeProgram, setRouteProgram] = useState<string[]>([""]);
+  const [optionalAddons, setOptionalAddons] = useState<{name: string, priceLKR: number}[]>([{name: "", priceLKR: 0}]);
 
   const handleStringArrayChange = (setter: any, state: string[], index: number, value: string) => {
     const next = [...state];
@@ -48,9 +49,10 @@ export default function EditTourForm({ tour, presetDestinations = [] }: { tour: 
     
     const perPersonFee = Number(formData.get("perPersonFee"));
 
-    const updatedTour: any = {
+    const newTour: any = {
       title,
       slug,
+      tourType,
       category,
       description: formData.get("description") as string,
       imageUrl,
@@ -58,49 +60,37 @@ export default function EditTourForm({ tour, presetDestinations = [] }: { tour: 
     };
 
     if (category === 'camping_hiking') {
-      updatedTour.durationDays = formData.get("durationDays") as string;
-      updatedTour.startTime = formData.get("startTime") as string;
-      updatedTour.providedItems = providedItems.filter(f => f.trim() !== "");
-      updatedTour.routeProgram = routeProgram.filter(f => f.trim() !== "");
-      updatedTour.optionalAddons = optionalAddons.filter(a => a.name.trim() !== "");
-      // Remove durationHours if switching from day tour to camping
-      updatedTour.durationHours = null; 
+      newTour.durationDays = formData.get("durationDays") as string;
+      newTour.startTime = formData.get("startTime") as string;
+      newTour.providedItems = providedItems.filter(f => f.trim() !== "");
+      newTour.optionalAddons = optionalAddons.filter(a => a.name.trim() !== "");
     } else {
-      updatedTour.durationHours = Number(formData.get("durationHours"));
-      updatedTour.startingPoint = formData.get("startingPoint") as string;
-      updatedTour.durationDays = null;
-      updatedTour.startTime = null;
-      updatedTour.providedItems = null;
-      updatedTour.optionalAddons = null;
+      newTour.durationHours = Number(formData.get("durationHours"));
+      newTour.startingPoint = formData.get("startingPoint") as string;
     }
-    updatedTour.routeProgram = routeProgram.filter(f => f.trim() !== "");
+    newTour.routeProgram = routeProgram.filter(f => f.trim() !== "");
 
     if (tourType === 'private') {
-      updatedTour.pricing = {
+      newTour.pricing = {
         perPersonFee,
         perPersonWithMeals: Number(formData.get("perPersonWithMeals")),
         fullTourPrice: perPersonFee * 8, // Calculate 8x rule
         fullTourPriceWithMeals: Number(formData.get("perPersonWithMeals")) * 8,
       };
     } else {
-      updatedTour.scheduledDate = formData.get("scheduledDate") as string;
-      updatedTour.totalSeats = Number(formData.get("totalSeats"));
-      updatedTour.pricing = {
+      newTour.scheduledDate = formData.get("scheduledDate") as string;
+      newTour.totalSeats = Number(formData.get("totalSeats"));
+      newTour.pricing = {
         perPersonFee,
         perPersonWithMeals: Number(formData.get("perPersonWithMeals")),
       };
     }
 
-    // Clean up nulls so Firebase can merge/delete fields as needed
-    // Actually, in updateTour, we merge. To delete fields we should use FieldValue.delete()
-    // But sending null might also work depending on how updateTour is implemented.
-    // For safety, let's let updateTour handle it as is.
-
-    const res = await updateTour(tour.id as string, updatedTour);
+    const res = await createTour(newTour);
     if (res.success) {
       router.push("/tours");
     } else {
-      alert("Failed to update tour: " + res.error);
+      alert("Failed to create tour: " + res.error);
       setIsLoading(false);
     }
   };
@@ -112,7 +102,7 @@ export default function EditTourForm({ tour, presetDestinations = [] }: { tour: 
           {tourType === 'private' ? <CarFront className="w-6 h-6" /> : <Users className="w-6 h-6" />}
         </div>
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-slate-100">Edit {tourType === 'private' ? 'Private Tour' : 'Group Tour'}</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-slate-100">Add New {tourType === 'private' ? 'Private Tour' : 'Group Tour'}</h2>
           <p className="text-slate-400">
             {tourType === 'private' 
               ? 'Customers will book the entire cab. Full price is automatically calculated as 8x the per person fee.' 
@@ -130,7 +120,7 @@ export default function EditTourForm({ tour, presetDestinations = [] }: { tour: 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300">Tour Title</label>
-                <input required name="title" defaultValue={tour.title} className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. Hirikatu Oya River Camping" />
+                <input required name="title" className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. Ohiya Camping Expedition" />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300">Category</label>
@@ -143,7 +133,7 @@ export default function EditTourForm({ tour, presetDestinations = [] }: { tour: 
             
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300">Description</label>
-              <textarea required name="description" defaultValue={tour.description} rows={3} className="flex w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Describe the tour experience..." />
+              <textarea required name="description" rows={3} className="flex w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Describe the tour experience..." />
             </div>
           </div>
 
@@ -156,22 +146,22 @@ export default function EditTourForm({ tour, presetDestinations = [] }: { tour: 
                 <>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-300">Duration (Days/Nights)</label>
-                    <input required type="text" name="durationDays" defaultValue={tour.durationDays} className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. 2 DAYS / 1 NIGHT" />
+                    <input required type="text" name="durationDays" className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. 2 DAYS / 1 NIGHT" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-300">Start Time</label>
-                    <input required type="text" name="startTime" defaultValue={tour.startTime} className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. 12:00 PM" />
+                    <input required type="text" name="startTime" className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. 12:00 PM" />
                   </div>
                 </>
               ) : (
                 <>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-300">Duration (Hours)</label>
-                    <input required type="number" name="durationHours" defaultValue={tour.durationHours} className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. 8" />
+                    <input required type="number" name="durationHours" className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. 8" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-300">Starting Point</label>
-                    <input required type="text" name="startingPoint" defaultValue={tour.startingPoint} className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. Belihuloya Rest House" />
+                    <input required type="text" name="startingPoint" className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. Belihuloya Rest House" />
                   </div>
                 </>
               )}
@@ -180,23 +170,23 @@ export default function EditTourForm({ tour, presetDestinations = [] }: { tour: 
                 <>
                   <div className="space-y-2 lg:col-span-1 md:col-span-2">
                     <label className="text-sm font-medium text-slate-300">Scheduled Date & Time</label>
-                    <input required type="datetime-local" name="scheduledDate" defaultValue={tour.scheduledDate} className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500" />
+                    <input required type="datetime-local" name="scheduledDate" className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-300">Total Available Seats</label>
-                    <input required type="number" min="1" name="totalSeats" defaultValue={tour.totalSeats} className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. 15" />
+                    <input required type="number" min="1" name="totalSeats" className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. 15" />
                   </div>
                 </>
               )}
               
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300">Base Fee (Without Meals) LKR</label>
-                <input required type="number" name="perPersonFee" defaultValue={tour.pricing.perPersonFee} className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. 3500" />
+                <input required type="number" name="perPersonFee" className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. 3500" />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300">Per Person (With Meals) LKR</label>
-                <input type="number" name="perPersonWithMeals" defaultValue={tour.pricing.perPersonWithMeals} className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Optional" />
+                <input type="number" name="perPersonWithMeals" className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Optional" />
               </div>
             </div>
 
@@ -330,16 +320,15 @@ export default function EditTourForm({ tour, presetDestinations = [] }: { tour: 
           </div>
         </div>
 
-        <div className="flex justify-between pt-4 border-t border-slate-800">
-          <button type="button" onClick={() => router.push("/tours")} className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-slate-700 bg-transparent hover:bg-slate-800 text-slate-300 h-11 px-8">
-            Cancel
-          </button>
+        <div className="flex justify-end pt-4 border-t border-slate-800">
           <button type="submit" disabled={isLoading} className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-orange-500 text-slate-50 hover:bg-orange-600 h-11 px-8">
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save Changes
+            Save Tour Package
           </button>
         </div>
       </form>
     </div>
   );
 }
+
+

@@ -26,48 +26,91 @@ export async function createBooking(data: {
     
     // Execute Firestore Transaction
     await adminDb.runTransaction(async (transaction) => {
-      const inventoryDoc = await transaction.get(inventoryRef);
       
-      let currentBookings = 0;
-      if (inventoryDoc.exists) {
-        currentBookings = inventoryDoc.data()?.jeepsBooked || 0;
+      if (data.tourType === 'group') {
+        const tourRef = adminDb.collection("tours").doc(data.tourId);
+        const tourDoc = await transaction.get(tourRef);
+        
+        if (!tourDoc.exists) throw new Error("Tour not found.");
+        
+        const tourData = tourDoc.data();
+        const totalSeats = tourData?.totalSeats || 0;
+        const bookedSeats = tourData?.bookedSeats || 0;
+        
+        if (totalSeats > 0 && (bookedSeats + data.pax > totalSeats)) {
+          throw new Error(`Sorry, only ${totalSeats - bookedSeats} seats are available for this tour.`);
+        }
+
+        // 1. Create the booking document
+        const newBooking: Booking = {
+          id: bookingRef.id,
+          tourId: data.tourId,
+          tourName: data.tourName,
+          customerName: data.customerName,
+          customerEmail: data.customerEmail,
+          customerPhone: data.customerPhone,
+          date: new Date(data.dateStr), // Using JS Date for admin SDK
+          pax: data.pax,
+          tourType: data.tourType,
+          includesMeals: data.includesMeals,
+          pricingBasis: data.pricingBasis,
+          totalPrice: data.totalPrice,
+          status: "pending" as BookingStatus,
+          createdAt: new Date(),
+          notes: data.notes || "",
+        };
+
+        transaction.set(bookingRef, newBooking);
+
+        // 2. Update tour bookedSeats
+        transaction.update(tourRef, {
+          bookedSeats: bookedSeats + data.pax
+        });
+
+      } else {
+        const inventoryDoc = await transaction.get(inventoryRef);
+        
+        let currentBookings = 0;
+        if (inventoryDoc.exists) {
+          currentBookings = inventoryDoc.data()?.jeepsBooked || 0;
+        }
+
+        if (currentBookings >= MAX_JEEPS_PER_DAY) {
+          throw new Error("Sorry, we are fully booked for this date. Please choose another date.");
+        }
+
+        // 1. Create the booking document
+        const newBooking: Booking = {
+          id: bookingRef.id,
+          tourId: data.tourId,
+          tourName: data.tourName,
+          customerName: data.customerName,
+          customerEmail: data.customerEmail,
+          customerPhone: data.customerPhone,
+          date: new Date(data.dateStr), // Using JS Date for admin SDK
+          pax: data.pax,
+          tourType: data.tourType,
+          includesMeals: data.includesMeals,
+          pricingBasis: data.pricingBasis,
+          totalPrice: data.totalPrice,
+          status: "pending" as BookingStatus,
+          createdAt: new Date(),
+          notes: data.notes || "",
+        };
+
+        transaction.set(bookingRef, newBooking);
+
+        // 2. Update the inventory for that date
+        transaction.set(
+          inventoryRef,
+          {
+            date: data.dateStr,
+            jeepsBooked: currentBookings + 1,
+            maxJeeps: MAX_JEEPS_PER_DAY,
+          },
+          { merge: true }
+        );
       }
-
-      if (currentBookings >= MAX_JEEPS_PER_DAY) {
-        throw new Error("Sorry, we are fully booked for this date. Please choose another date.");
-      }
-
-      // 1. Create the booking document
-      const newBooking: Booking = {
-        id: bookingRef.id,
-        tourId: data.tourId,
-        tourName: data.tourName,
-        customerName: data.customerName,
-        customerEmail: data.customerEmail,
-        customerPhone: data.customerPhone,
-        date: new Date(data.dateStr), // Using JS Date for admin SDK
-        pax: data.pax,
-        tourType: data.tourType,
-        includesMeals: data.includesMeals,
-        pricingBasis: data.pricingBasis,
-        totalPrice: data.totalPrice,
-        status: "pending" as BookingStatus,
-        createdAt: new Date(),
-        notes: data.notes || "",
-      };
-
-      transaction.set(bookingRef, newBooking);
-
-      // 2. Update the inventory for that date
-      transaction.set(
-        inventoryRef,
-        {
-          date: data.dateStr,
-          jeepsBooked: currentBookings + 1,
-          maxJeeps: MAX_JEEPS_PER_DAY,
-        },
-        { merge: true }
-      );
     });
 
     // Send confirmation email via Resend

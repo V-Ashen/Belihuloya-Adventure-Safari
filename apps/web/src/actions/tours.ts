@@ -5,8 +5,22 @@ export async function getTours(): Promise<Tour[]> {
     const snapshot = await adminDb.collection("tours").orderBy("createdAt", "desc").get();
     
     const tours: Tour[] = [];
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
     snapshot.forEach((doc) => {
       const data = doc.data();
+
+      // Ensure tour is active
+      if (data.isActive === false) return;
+
+      // Auto-expire group tours
+      if (data.tourType === 'group' && data.scheduledDate) {
+        if (new Date(data.scheduledDate) < today) {
+          return; // Skip expired group tour
+        }
+      }
+
       tours.push({
         id: doc.id,
         title: data.title,
@@ -16,9 +30,15 @@ export async function getTours(): Promise<Tour[]> {
         category: data.category,
         description: data.description,
         durationHours: data.durationHours,
+        durationDays: data.durationDays,
+        startTime: data.startTime,
+        startingPoint: data.startingPoint,
         imageUrl: data.imageUrl,
         pricing: data.pricing,
         features: data.features,
+        providedItems: data.providedItems,
+        routeProgram: data.routeProgram,
+        optionalAddons: data.optionalAddons,
       } as Tour);
     });
 
@@ -37,6 +57,16 @@ export async function getTourBySlug(slug: string): Promise<Tour | null> {
 
     const doc = snapshot.docs[0];
     const data = doc.data();
+
+    if (data.isActive === false) return null;
+
+    if (data.tourType === 'group' && data.scheduledDate) {
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      if (new Date(data.scheduledDate) < today) {
+        return null;
+      }
+    }
     
     return {
       id: doc.id,
@@ -47,9 +77,15 @@ export async function getTourBySlug(slug: string): Promise<Tour | null> {
       category: data.category,
       description: data.description,
       durationHours: data.durationHours,
+      durationDays: data.durationDays,
+      startTime: data.startTime,
+      startingPoint: data.startingPoint,
       imageUrl: data.imageUrl,
       pricing: data.pricing,
       features: data.features,
+      providedItems: data.providedItems,
+      routeProgram: data.routeProgram,
+      optionalAddons: data.optionalAddons,
     } as Tour;
   } catch (error) {
     console.error("Error fetching tour by slug:", error);

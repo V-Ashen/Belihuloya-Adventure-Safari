@@ -2,10 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  const navLinks = [
+    { name: "Home", href: "/" },
+    { name: "Tours", href: "/tours" },
+    { name: "About", href: "/#about" },
+    { name: "Contact", href: "/#contact" },
+  ];
 
   return (
     <header className="fixed top-0 w-full z-50 bg-[#0b120c] border-b border-[#18261a]">
@@ -18,10 +27,20 @@ export default function Navbar() {
 
         {/* Desktop Nav Links */}
         <nav className="hidden md:flex gap-10 text-sm font-semibold tracking-wide">
-          <Link href="/" className="text-orange-500 hover:text-orange-400 font-mono transition-colors">Home</Link>
-          <Link href="/tours" className="text-[#a3b3a5] hover:text-white font-mono transition-colors">Tours</Link>
-          <Link href="/#about" className="text-[#a3b3a5] hover:text-white font-mono transition-colors">About</Link>
-          <Link href="/#contact" className="text-[#a3b3a5] hover:text-white font-mono transition-colors">Contact</Link>
+          {navLinks.map((link) => {
+            // Because About and Contact are hash links on the home page:
+            const isHashLink = link.href.includes('#');
+            const isActive = link.href === "/" 
+              ? pathname === "/" 
+              : isHashLink 
+                ? false // Don't highlight hash links based on pathname
+                : pathname.startsWith(link.href);
+            return (
+              <Link key={link.name} href={link.href} className={`${isActive ? "text-orange-500 hover:text-orange-400" : "text-[#a3b3a5] hover:text-white"} font-mono transition-colors`}>
+                {link.name}
+              </Link>
+            );
+          })}
         </nav>
 
         {/* Desktop CTA Button */}
@@ -50,10 +69,19 @@ export default function Navbar() {
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-40 bg-[#0b120c] pt-24 px-6 flex flex-col md:hidden animate-in fade-in slide-in-from-top-4 duration-300">
           <nav className="flex flex-col gap-6 text-2xl font-black font-display tracking-widest uppercase">
-            <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="text-orange-500 hover:text-orange-400 transition-colors border-b border-[#18261a] pb-6">Home</Link>
-            <Link href="/tours" onClick={() => setIsMobileMenuOpen(false)} className="text-white hover:text-orange-500 transition-colors border-b border-[#18261a] pb-6">Tours</Link>
-            <Link href="/#about" onClick={() => setIsMobileMenuOpen(false)} className="text-white hover:text-orange-500 transition-colors border-b border-[#18261a] pb-6">About</Link>
-            <Link href="/#contact" onClick={() => setIsMobileMenuOpen(false)} className="text-white hover:text-orange-500 transition-colors border-b border-[#18261a] pb-6">Contact</Link>
+            {navLinks.map((link) => {
+              const isHashLink = link.href.includes('#');
+              const isActive = link.href === "/" 
+                ? pathname === "/" 
+                : isHashLink 
+                  ? false
+                  : pathname.startsWith(link.href);
+              return (
+                <Link key={link.name} href={link.href} onClick={() => setIsMobileMenuOpen(false)} className={`${isActive ? "text-orange-500 hover:text-orange-400" : "text-white hover:text-orange-500"} transition-colors border-b border-[#18261a] pb-6`}>
+                  {link.name}
+                </Link>
+              );
+            })}
           </nav>
           
           <Link

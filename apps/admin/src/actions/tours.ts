@@ -19,9 +19,18 @@ export async function getTours() {
         category: data.category,
         description: data.description,
         durationHours: data.durationHours,
+        durationDays: data.durationDays,
+        startTime: data.startTime,
+        startingPoint: data.startingPoint,
+        isActive: data.isActive !== false, // Default to true if undefined
+        totalSeats: data.totalSeats,
+        bookedSeats: data.bookedSeats || 0,
         imageUrl: data.imageUrl,
         pricing: data.pricing,
         features: data.features,
+        providedItems: data.providedItems,
+        routeProgram: data.routeProgram,
+        optionalAddons: data.optionalAddons,
         createdAt: data.createdAt?.toDate() || new Date(),
       } as Tour);
     });
@@ -37,6 +46,8 @@ export async function createTour(tourData: Omit<Tour, "id" | "createdAt">) {
   try {
     const docRef = await adminDb.collection("tours").add({
       ...tourData,
+      isActive: true,
+      bookedSeats: 0,
       createdAt: new Date(),
     });
     
@@ -45,6 +56,19 @@ export async function createTour(tourData: Omit<Tour, "id" | "createdAt">) {
   } catch (error) {
     console.error("Error creating tour:", error);
     return { success: false, error: "Failed to create tour" };
+  }
+}
+
+export async function toggleTourStatus(tourId: string, currentStatus: boolean) {
+  try {
+    await adminDb.collection("tours").doc(tourId).update({
+      isActive: !currentStatus
+    });
+    revalidatePath("/tours");
+    return { success: true };
+  } catch (error) {
+    console.error("Error toggling tour status:", error);
+    return { success: false, error: "Failed to toggle tour status" };
   }
 }
 
@@ -74,9 +98,18 @@ export async function getTourById(id: string) {
       category: data.category,
       description: data.description,
       durationHours: data.durationHours,
+      durationDays: data.durationDays,
+      startTime: data.startTime,
+      startingPoint: data.startingPoint,
+      isActive: data.isActive !== false,
+      totalSeats: data.totalSeats,
+      bookedSeats: data.bookedSeats || 0,
       imageUrl: data.imageUrl,
       pricing: data.pricing,
       features: data.features,
+      providedItems: data.providedItems,
+      routeProgram: data.routeProgram,
+      optionalAddons: data.optionalAddons,
       createdAt: data.createdAt?.toDate() || new Date(),
     } as Tour;
   } catch (error) {
@@ -88,10 +121,33 @@ export async function getTourById(id: string) {
 export async function updateTour(id: string, tourData: Partial<Omit<Tour, "id" | "createdAt">>) {
   try {
     await adminDb.collection("tours").doc(id).update(tourData);
-    revalidatePath("/tours");
+    revalidatePath("/tours", "layout");
     return { success: true };
   } catch (error) {
     console.error("Error updating tour:", error);
     return { success: false, error: "Failed to update tour" };
+  }
+}
+
+export async function getUniqueDestinations() {
+  try {
+    const snapshot = await adminDb.collection("tours").get();
+    const destinations = new Set<string>();
+    
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      if (data.routeProgram && Array.isArray(data.routeProgram)) {
+        data.routeProgram.forEach((item: string) => {
+          if (item && item.trim()) {
+            destinations.add(item.trim());
+          }
+        });
+      }
+    });
+
+    return { success: true, destinations: Array.from(destinations).sort() };
+  } catch (error) {
+    console.error("Error fetching destinations:", error);
+    return { success: false, error: "Failed to fetch destinations" };
   }
 }
