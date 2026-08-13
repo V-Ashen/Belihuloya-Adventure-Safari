@@ -61,8 +61,8 @@ export default function ContactPage() {
       {/* Page Hero */}
       <section className="relative py-16 md:py-24 border-b border-[#EDE6D3]/10 overflow-hidden">
         <div 
-          className="absolute inset-0 bg-cover bg-center opacity-20"
-          style={{ backgroundImage: `url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=1600')` }}
+          className="absolute inset-0 bg-cover bg-center opacity-25"
+          style={{ backgroundImage: `url('/contact.png')` }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#0b120c]/60 via-[#0b120c]/80 to-[#0b120c]" />
         

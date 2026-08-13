@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Oswald, Inter, JetBrains_Mono } from "next/font/google";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -12,21 +11,6 @@ import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import "./globals.css";
 import { getSettings } from "@/actions/settings";
-
-const oswald = Oswald({ 
-  subsets: ["latin"],
-  variable: "--font-oswald", 
-});
-
-const inter = Inter({ 
-  subsets: ["latin"],
-  variable: "--font-inter", 
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-});
 
 export const metadata: Metadata = {
   title: "Belihuloya Adventure Safari | Extreme Off-Road & Camping",
@@ -59,31 +43,17 @@ export default async function RootLayout({
   const ytLink = settings.socialLinks?.youtube || "http://www.youtube.com/@Belihuloyaadventuresafari";
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${oswald.variable} ${inter.variable} ${jetbrainsMono.variable} font-sans min-h-screen flex flex-col bg-[#0b120c]`}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet" />
+      </head>
+      <body className="font-sans min-h-screen flex flex-col bg-[#0b120c]">
         <Navbar />
 
         <main className="flex-1">
           {children}
         </main>
-
-        {/* CTA Banner */}
-        <section className="bg-[#f97316] py-20 text-center px-4">
-          <h2 className="text-4xl md:text-6xl font-black text-[#0b120c] uppercase tracking-tight leading-none mb-4 font-display">
-            EVERY JEEP HAS A LIMIT.<br />
-            YOURS MIGHT ALREADY BE BOOKED.
-          </h2>
-          <p className="text-[#3d1a00]/80 text-base mb-10 max-w-md mx-auto font-sans">
-            Only 5 jeeps run per day across all routes. Lock your date before someone else does.
-          </p>
-          <a
-            href="https://wa.me/94XXXXXXXXX"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-3 bg-[#0b120c] hover:bg-[#050905] text-white text-xs font-bold tracking-[0.2em] uppercase px-10 py-4 rounded-none transition-colors font-mono"
-          >
-            MESSAGE US ON WHATSAPP
-          </a>
-        </section>
 
         {/* Footer */}
         <footer id="contact" className="bg-[#070c08] pt-16 pb-0 border-t border-[#18261a]">

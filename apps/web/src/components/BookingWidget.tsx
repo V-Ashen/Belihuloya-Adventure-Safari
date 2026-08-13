@@ -63,7 +63,7 @@ export default function BookingWidget({ tour }: BookingWidgetProps) {
     if (includesMeals && tour.pricing.fullTourPriceWithMeals) {
       pricePerCab = tour.pricing.fullTourPriceWithMeals;
     } else {
-      pricePerCab = tour.pricing.fullTourPrice || (tour.pricing.perPersonFee * 8);
+      pricePerCab = tour.pricing.fullTourPrice || ((tour.pricing.perPersonFee || 0) * 8);
     }
     totalPrice = pricePerCab * cabsNeeded;
     pricingBasis = 'full_tour';
@@ -71,7 +71,7 @@ export default function BookingWidget({ tour }: BookingWidgetProps) {
     // Group Tour
     totalPrice = (includesMeals && tour.pricing.perPersonWithMeals)
       ? tour.pricing.perPersonWithMeals * pax 
-      : tour.pricing.perPersonFee * pax;
+      : (tour.pricing.perPersonFee || 0) * pax;
     pricingBasis = 'per_person';
   }
 
@@ -105,7 +105,7 @@ export default function BookingWidget({ tour }: BookingWidgetProps) {
     const result = await createBooking({
       tourId: tour.id || tour.slug,
       tourName: tour.title,
-      tourType: tour.tourType,
+      tourType: tour.tourType || 'private',
       includesMeals: !!tour.pricing.perPersonWithMeals ? includesMeals : false,
       pricingBasis,
       dateStr: date,
@@ -232,15 +232,17 @@ export default function BookingWidget({ tour }: BookingWidgetProps) {
               <X className="w-5 h-5" />
             </button>
 
-            <style dangerouslySetInvert>{`
-              .rdp { --rdp-cell-size: 35px; margin: 0; }
-              .rdp-day_selected { background-color: #f97316 !important; font-weight: bold; }
-              .rdp-nav_button { color: #f97316; }
-              .rdp-caption_label { font-size: 1rem; font-weight: bold; color: white; }
-              .rdp-head_cell { font-size: 0.7rem; color: #94a3b8; }
-              .rdp-day { color: white; border-radius: 8px; }
-              .rdp-day_disabled { color: #475569; opacity: 0.5; }
-            `}</style>
+            <style dangerouslySetInnerHTML={{
+              __html: `
+                .rdp { --rdp-cell-size: 35px; margin: 0; }
+                .rdp-day_selected { background-color: #f97316 !important; font-weight: bold; }
+                .rdp-nav_button { color: #f97316; }
+                .rdp-caption_label { font-size: 1rem; font-weight: bold; color: white; }
+                .rdp-head_cell { font-size: 0.7rem; color: #94a3b8; }
+                .rdp-day { color: white; border-radius: 8px; }
+                .rdp-day_disabled { color: #475569; opacity: 0.5; }
+              `
+            }} />
             
             {isLoadingAvail && (
               <div className="absolute inset-0 bg-slate-950/80 z-10 flex flex-col items-center justify-center rounded-xl">

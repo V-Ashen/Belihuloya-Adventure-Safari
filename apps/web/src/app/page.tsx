@@ -229,6 +229,25 @@ export default async function Home() {
 
       {/* TikTok Clips Section */}
       <TikTokClips clips={settings.tiktokClips || []} />
+
+      {/* CTA Banner */}
+      <section className="bg-[#f97316] py-20 text-center px-4">
+        <h2 className="text-4xl md:text-6xl font-black text-[#0b120c] uppercase tracking-tight leading-none mb-4 font-display">
+          EVERY JEEP HAS A LIMIT.<br />
+          YOURS MIGHT ALREADY BE BOOKED.
+        </h2>
+        <p className="text-[#3d1a00]/80 text-base mb-10 max-w-md mx-auto font-sans">
+          Only 5 jeeps run per day across all routes. Lock your date before someone else does.
+        </p>
+        <a
+          href="https://wa.me/94XXXXXXXXX"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-3 bg-[#0b120c] hover:bg-[#050905] text-white text-xs font-bold tracking-[0.2em] uppercase px-10 py-4 rounded-none transition-colors font-mono"
+        >
+          MESSAGE US ON WHATSAPP
+        </a>
+      </section>
     </div>
   );
 }
