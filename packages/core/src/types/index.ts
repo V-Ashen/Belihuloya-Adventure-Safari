@@ -102,3 +102,16 @@ export interface SiteSettings {
   fleet?: FleetSettings;
   updatedAt?: Timestamp | Date;
 }
+
+export interface Inquiry {
+  id?: string;
+  name: string;
+  phone: string;
+  email: string;
+  date?: string;
+  groupSize?: string;
+  route: string;
+  message: string;
+  status: 'new' | 'read' | 'replied';
+  createdAt: Timestamp | Date;
+}

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LayoutDashboard, CalendarDays, Car, Package, Users, Settings, LogOut, Map } from "lucide-react";
+import { LayoutDashboard, CalendarDays, Car, Package, Users, Settings, LogOut, Map, MessageSquare } from "lucide-react";
 import { Manrope, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
 
@@ -32,6 +32,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Link>
           <Link href="/bookings" className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium">
             <CalendarDays className="w-5 h-5 text-blue-500" /> Bookings
+          </Link>
+          <Link href="/messages" className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium">
+            <MessageSquare className="w-5 h-5 text-[#FF9138]" /> Messages & Inquiries
           </Link>
           <Link href="/tours" className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium">
             <Package className="w-5 h-5 text-purple-500" /> Tour CMS
