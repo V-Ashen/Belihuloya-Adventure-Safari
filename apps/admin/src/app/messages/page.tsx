@@ -10,6 +10,12 @@ import {
   ExternalLink
 } from "lucide-react";
 
+const parseDate = (d: any) => {
+  if (!d) return new Date();
+  if (typeof d?.toDate === "function") return d.toDate();
+  return new Date(d);
+};
+
 export default function MessagesPage() {
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -141,7 +147,7 @@ export default function MessagesPage() {
           <div className="lg:col-span-5 space-y-3">
             {filtered.map((item) => {
               const isSelected = selectedInquiry?.id === item.id;
-              const formattedDate = format(new Date(item.createdAt), "MMM d, yyyy h:mm a");
+              const formattedDate = format(parseDate(item.createdAt), "MMM d, yyyy h:mm a");
               
               return (
                 <div
@@ -167,7 +173,7 @@ export default function MessagesPage() {
                       )}
                       <h3 className="font-bold text-white text-sm line-clamp-1">{item.name || "Anonymous"}</h3>
                     </div>
-                    <span className="text-[10px] text-slate-500 whitespace-nowrap">{format(new Date(item.createdAt), "MMM d")}</span>
+                    <span className="text-[10px] text-slate-500 whitespace-nowrap">{format(parseDate(item.createdAt), "MMM d")}</span>
                   </div>
 
                   <div className="text-xs text-orange-400 font-medium mb-2 line-clamp-1">
@@ -207,7 +213,7 @@ export default function MessagesPage() {
                     <h2 className="text-2xl font-bold text-white">{selectedInquiry.name}</h2>
                     <p className="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5 text-slate-500" />
-                      Received {format(new Date(selectedInquiry.createdAt), "EEEE, MMMM d, yyyy 'at' h:mm a")}
+                      Received {format(parseDate(selectedInquiry.createdAt), "EEEE, MMMM d, yyyy 'at' h:mm a")}
                     </p>
                   </div>
 
