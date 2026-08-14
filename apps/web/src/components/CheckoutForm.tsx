@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   ShieldCheck, CreditCard, CheckCircle2, Loader2, 
@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { createBooking } from "@/actions/booking";
 import { Tour } from "@belihuloya/core";
+import { useAuth } from "@/components/AuthProvider";
 
 interface CheckoutFormProps {
   tour: Tour | null;
@@ -17,10 +18,20 @@ interface CheckoutFormProps {
 }
 
 export default function CheckoutForm({ tour, dateStr, paxParam, includesMealsParam }: CheckoutFormProps) {
+  const { user } = useAuth();
+
   // Form State
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    if (user) {
+      if (user.email && !email) setEmail(user.email);
+      if (user.displayName && !name) setName(user.displayName);
+      if (user.phoneNumber && !phone) setPhone(user.phoneNumber);
+    }
+  }, [user]);
 
   const [createAccount, setCreateAccount] = useState(false);
   const [password, setPassword] = useState("");
@@ -288,44 +299,46 @@ export default function CheckoutForm({ tour, dateStr, paxParam, includesMealsPar
               </div>
 
               {/* Create Account Checkbox */}
-              <div className="pt-2 border-t border-[#18261a]">
-                <label className="flex items-start gap-3 cursor-pointer group">
-                  <input 
-                    type="checkbox"
-                    checked={createAccount}
-                    onChange={(e) => setCreateAccount(e.target.checked)}
-                    className="mt-1 w-4 h-4 rounded border-[#18261a] text-[#f97316] focus:ring-0 accent-[#f97316]"
-                  />
-                  <div>
-                    <span className="text-white font-bold text-sm block group-hover:text-[#f97316] transition-colors">
-                      Create an account
-                    </span>
-                    <span className="text-[11px] text-[#f97316] font-mono block mt-0.5">
-                      * Registered users can get offers
-                    </span>
-                  </div>
-                </label>
-
-                {/* Password field if Create Account is checked */}
-                {createAccount && (
-                  <div className="mt-4 pt-4 border-t border-[#18261a]/60 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <label className="text-[10px] text-[#647466] font-mono font-bold uppercase tracking-widest block mb-1.5">
-                      Create Password <span className="text-[#f97316]">*</span>
-                    </label>
-                    <div className="bg-[#080d09] border border-[#18261a] rounded-sm p-3 flex items-center gap-3 focus-within:border-[#f97316]">
-                      <Lock className="w-4 h-4 text-[#f97316] shrink-0" />
-                      <input 
-                        type="password"
-                        required={createAccount}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="bg-transparent text-white font-mono text-sm focus:outline-none w-full placeholder-[#647466]"
-                      />
+              {!user && (
+                <div className="pt-2 border-t border-[#18261a]">
+                  <label className="flex items-start gap-3 cursor-pointer group">
+                    <input 
+                      type="checkbox"
+                      checked={createAccount}
+                      onChange={(e) => setCreateAccount(e.target.checked)}
+                      className="mt-1 w-4 h-4 rounded border-[#18261a] text-[#f97316] focus:ring-0 accent-[#f97316]"
+                    />
+                    <div>
+                      <span className="text-white font-bold text-sm block group-hover:text-[#f97316] transition-colors">
+                        Create an account
+                      </span>
+                      <span className="text-[11px] text-[#f97316] font-mono block mt-0.5">
+                        * Registered users can get offers
+                      </span>
                     </div>
-                  </div>
-                )}
-              </div>
+                  </label>
+
+                  {/* Password field if Create Account is checked */}
+                  {createAccount && (
+                    <div className="mt-4 pt-4 border-t border-[#18261a]/60 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <label className="text-[10px] text-[#647466] font-mono font-bold uppercase tracking-widest block mb-1.5">
+                        Create Password <span className="text-[#f97316]">*</span>
+                      </label>
+                      <div className="bg-[#080d09] border border-[#18261a] rounded-sm p-3 flex items-center gap-3 focus-within:border-[#f97316]">
+                        <Lock className="w-4 h-4 text-[#f97316] shrink-0" />
+                        <input 
+                          type="password"
+                          required={createAccount}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="••••••••"
+                          className="bg-transparent text-white font-mono text-sm focus:outline-none w-full placeholder-[#647466]"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Step 2: Payment Option Selector */}

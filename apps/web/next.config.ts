@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  transpilePackages: ["@belihuloya/core"],
 };
 
 export default nextConfig;

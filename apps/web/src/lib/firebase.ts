@@ -11,13 +11,6 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-if (typeof window !== 'undefined') {
-  console.log("Firebase Config Initialization:", {
-    apiKey: firebaseConfig.apiKey ? "PRESENT" : "MISSING",
-    projectId: firebaseConfig.projectId ? "PRESENT" : "MISSING"
-  });
-}
-
 // Initialize Firebase only if there are no existing apps
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 export const db = getFirestore(app);

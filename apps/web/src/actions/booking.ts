@@ -179,3 +179,30 @@ export async function createBooking(data: {
     return { success: false, error: error.message || "Failed to create booking." };
   }
 }
+
+export async function getUserBookings(email: string) {
+  try {
+    const bookingsRef = adminDb.collection("bookings");
+    const snapshot = await bookingsRef.where("customerEmail", "==", email).get();
+    
+    const bookings: any[] = [];
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      bookings.push({
+        id: doc.id,
+        ...data,
+        // Convert Firestore Timestamps to ISO strings to pass to client
+        date: data.date?.toDate ? data.date.toDate().toISOString() : data.date,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt,
+      });
+    });
+
+    // Sort by date descending
+    bookings.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    return { success: true, bookings };
+  } catch (error: any) {
+    console.error("Error fetching user bookings:", error);
+    return { success: false, error: error.message || "Failed to fetch bookings." };
+  }
+}
