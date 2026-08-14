@@ -64,12 +64,14 @@ function TourCard({ tour }: { tour: any }) {
   let daysLeft = null;
   let seatsAvailable = null;
   
-  if (isGroup && tour.scheduledDate) {
-    const timeDiff = new Date(tour.scheduledDate).getTime() - new Date().getTime();
-    daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
-    
-    if (tour.totalSeats) {
-      seatsAvailable = tour.totalSeats - (tour.bookedSeats || 0);
+  if (isGroup) {
+    const totalSeats = tour.totalSeats ?? 8;
+    const bookedSeats = tour.bookedSeats || 0;
+    seatsAvailable = totalSeats - bookedSeats;
+
+    if (tour.scheduledDate) {
+      const timeDiff = new Date(tour.scheduledDate).getTime() - new Date().getTime();
+      daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
     }
   }
 
@@ -84,14 +86,20 @@ function TourCard({ tour }: { tour: any }) {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0b120c] via-[#0b120c]/40 to-transparent z-10" />
 
-        {isGroup && daysLeft !== null && daysLeft > 0 && (
+        {isGroup && (
           <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
-            <div className="bg-orange-500 text-slate-950 text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg">
-              {daysLeft} Days Left
-            </div>
+            {daysLeft !== null && daysLeft > 0 && (
+              <div className="bg-orange-500 text-slate-950 text-xs font-mono font-bold uppercase tracking-widest px-3 py-1.5 rounded-sm shadow-lg">
+                {daysLeft} Days Left
+              </div>
+            )}
             {seatsAvailable !== null && (
-              <div className="bg-black/60 backdrop-blur-md text-orange-400 text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg border border-orange-500/30">
-                {seatsAvailable} Seats Left
+              <div className={`text-xs font-mono font-bold uppercase tracking-widest px-3 py-1.5 rounded-sm shadow-lg border ${
+                seatsAvailable <= 0 
+                  ? 'bg-red-500/80 text-white border-red-500' 
+                  : 'bg-[#080d09]/90 backdrop-blur-md text-[#f97316] border-[#f97316]/50'
+              }`}>
+                {seatsAvailable <= 0 ? 'Fully Booked' : `${seatsAvailable} Seats Available`}
               </div>
             )}
           </div>

@@ -180,11 +180,14 @@ export default async function Home() {
       </section>
 
       {/* Logbook / Reviews Section */}
-      <section className="py-24 bg-[#080d09] border-t border-[#1a281c]">
-        <div className="container mx-auto px-6">
+      <section className="py-24 bg-[#080d09] border-t border-[#18261a] relative overflow-hidden">
+        {/* Subtle ambient glow */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#f97316]/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="container mx-auto px-6 relative z-10">
           <div className="mb-16">
             <p className="text-[#f97316] text-[10px] tracking-[0.3em] uppercase font-bold mb-3 font-mono flex items-center gap-2">
-              <span className="text-[#f97316]">◆</span> TRAIL LOG
+              <span className="w-2 h-2 rounded-sm bg-[#f97316] rotate-45" /> TRAIL LOG
             </p>
             <h2 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight mb-4 font-display">
               FROM THE LOGBOOK.
@@ -198,28 +201,32 @@ export default async function Home() {
             {reviews.map((rev, idx) => (
               <div
                 key={idx}
-                className="bg-[#eee8d5] p-8 flex flex-col justify-between rounded-none border border-[#d6cfb9] text-[#292524] shadow-md hover:shadow-xl transition-shadow"
+                className="bg-[#0e1710] border border-[#1e3323] p-8 flex flex-col justify-between rounded-sm relative group hover:border-[#f97316]/60 transition-all duration-300 hover:-translate-y-1 shadow-xl"
               >
                 <div>
                   {/* Top orange accent bar */}
-                  <div className="w-8 h-1 bg-[#f97316] mb-6" />
+                  <div className="w-8 h-1 bg-[#f97316] mb-6 rounded-full group-hover:w-16 transition-all duration-300" />
 
-                  {/* Rating Stars */}
-                  <div className="flex items-center gap-2 mb-6">
-                    <span className="text-[#c2410c] text-sm tracking-widest font-mono">★★★★★</span>
-                    <span className="text-[#78350f] text-xs font-mono font-bold">{rev.rating}</span>
+                  {/* Rating Stars & Score */}
+                  <div className="flex items-center justify-between mb-6">
+                    <span className="text-[#f97316] text-sm tracking-widest font-mono">★★★★★</span>
+                    <span className="bg-[#f97316]/10 border border-[#f97316]/20 px-2 py-0.5 text-xs text-[#f97316] font-mono font-bold rounded-sm">
+                      {rev.rating} / 5.0
+                    </span>
                   </div>
 
                   {/* Review Text */}
-                  <p className="text-[#332e2b] text-sm leading-relaxed font-sans mb-8">
+                  <p className="text-[#a3b3a5] text-sm md:text-base leading-relaxed font-sans mb-8 group-hover:text-slate-100 transition-colors">
                     &ldquo;{rev.text}&rdquo;
                   </p>
                 </div>
 
                 {/* Footer line & author details */}
-                <div className="pt-4 border-t border-dashed border-[#b8b098] flex items-center justify-between font-mono text-xs">
-                  <span className="font-bold text-[#1c1917] tracking-wider">{rev.name}</span>
-                  <span className="text-[#78716c] tracking-widest text-[11px]">{rev.location}</span>
+                <div className="pt-4 border-t border-[#18261a] flex items-center justify-between font-mono text-xs">
+                  <span className="font-bold text-white uppercase tracking-wider">{rev.name}</span>
+                  <span className="text-[#f97316] tracking-widest text-[10px] uppercase font-bold bg-[#121f14] px-2 py-1 border border-[#1e3323] rounded-sm">
+                    {rev.location}
+                  </span>
                 </div>
               </div>
             ))}

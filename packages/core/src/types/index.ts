@@ -54,6 +54,9 @@ export interface Booking {
   date: Timestamp | Date; // The date of the tour
   pax: number; // Number of passengers
   totalPrice: number;
+  paymentOption?: 'advance_30' | 'full';
+  amountPaid?: number;
+  createdAccount?: boolean;
   status: BookingStatus;
   createdAt: Timestamp | Date;
   notes?: string;

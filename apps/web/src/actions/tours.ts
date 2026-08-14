@@ -1,4 +1,33 @@
+"use server";
+
 import { adminDb, Tour } from "@belihuloya/core";
+
+async function getEffectiveGroupSeats(tourId?: string, slug?: string, docTotalSeats?: number, docBookedSeats?: number) {
+  // Group tours always have a standard jeep capacity of 8 seats per jeep
+  let totalSeats = Math.max(docTotalSeats || 0, 8);
+  let bookedSeats = docBookedSeats || 0;
+
+  try {
+    const bookingsSnapshot = await adminDb.collection("bookings").get();
+
+    let activePax = 0;
+    bookingsSnapshot.forEach(bDoc => {
+      const b = bDoc.data();
+      // Count all active bookings (pending, confirmed, completed - excluding cancelled or rejected)
+      if (b.status !== "cancelled" && b.status !== "rejected") {
+        if ((tourId && b.tourId === tourId) || (slug && b.tourId === slug) || (slug && b.tourSlug === slug)) {
+          activePax += (b.pax || 0);
+        }
+      }
+    });
+
+    bookedSeats = Math.max(bookedSeats, activePax);
+  } catch (err) {
+    console.error("Error querying group bookings:", err);
+  }
+
+  return { totalSeats, bookedSeats };
+}
 
 export async function getTours(): Promise<Tour[]> {
   try {
@@ -8,17 +37,26 @@ export async function getTours(): Promise<Tour[]> {
     const today = new Date();
     today.setHours(0,0,0,0);
 
-    snapshot.forEach((doc) => {
+    for (const doc of snapshot.docs) {
       const data = doc.data();
 
       // Ensure tour is active
-      if (data.isActive === false) return;
+      if (data.isActive === false) continue;
 
       // Auto-expire group tours
       if (data.tourType === 'group' && data.scheduledDate) {
         if (new Date(data.scheduledDate) < today) {
-          return; // Skip expired group tour
+          continue; // Skip expired group tour
         }
+      }
+
+      let totalSeats = data.totalSeats ?? 8;
+      let bookedSeats = data.bookedSeats || 0;
+
+      if (data.tourType === 'group') {
+        const seatsInfo = await getEffectiveGroupSeats(doc.id, data.slug, data.totalSeats, data.bookedSeats);
+        totalSeats = seatsInfo.totalSeats;
+        bookedSeats = seatsInfo.bookedSeats;
       }
 
       tours.push({
@@ -27,6 +65,8 @@ export async function getTours(): Promise<Tour[]> {
         slug: data.slug,
         tourType: data.tourType,
         scheduledDate: data.scheduledDate,
+        totalSeats,
+        bookedSeats,
         category: data.category,
         description: data.description,
         durationHours: data.durationHours,
@@ -40,7 +80,7 @@ export async function getTours(): Promise<Tour[]> {
         routeProgram: data.routeProgram,
         optionalAddons: data.optionalAddons,
       } as Tour);
-    });
+    }
 
     return tours;
   } catch (error) {
@@ -67,6 +107,15 @@ export async function getTourBySlug(slug: string): Promise<Tour | null> {
         return null;
       }
     }
+
+    let totalSeats = data.totalSeats ?? 8;
+    let bookedSeats = data.bookedSeats || 0;
+
+    if (data.tourType === 'group') {
+      const seatsInfo = await getEffectiveGroupSeats(doc.id, data.slug, data.totalSeats, data.bookedSeats);
+      totalSeats = seatsInfo.totalSeats;
+      bookedSeats = seatsInfo.bookedSeats;
+    }
     
     return {
       id: doc.id,
@@ -74,6 +123,8 @@ export async function getTourBySlug(slug: string): Promise<Tour | null> {
       slug: data.slug,
       tourType: data.tourType,
       scheduledDate: data.scheduledDate,
+      totalSeats,
+      bookedSeats,
       category: data.category,
       description: data.description,
       durationHours: data.durationHours,

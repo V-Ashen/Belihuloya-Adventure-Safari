@@ -1,19 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Info, Loader2, Users, CarFront, Calendar as CalendarIcon, X } from "lucide-react";
-import { createBooking } from "@/actions/booking";
+import { Info, Loader2, Users, Calendar as CalendarIcon, X, ArrowRight } from "lucide-react";
 import { fetchMonthlyAvailability } from "@/actions/availability";
 import { Tour, DailyAvailability } from "@belihuloya/core";
 import { format, getMonth, getYear, isBefore, startOfToday, parseISO } from "date-fns";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
+import { useRouter } from "next/navigation";
 
 interface BookingWidgetProps {
   tour: Tour;
 }
 
 export default function BookingWidget({ tour }: BookingWidgetProps) {
+  const router = useRouter();
   const [includesMeals, setIncludesMeals] = useState<boolean>(true);
 
   const [date, setDate] = useState(tour.tourType === 'group' && tour.scheduledDate ? tour.scheduledDate.split('T')[0] : "");
@@ -23,17 +24,11 @@ export default function BookingWidget({ tour }: BookingWidgetProps) {
   const [isLoadingAvail, setIsLoadingAvail] = useState(false);
 
   const [pax, setPax] = useState(1);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
   // Fetch availability for the current calendar month
   useEffect(() => {
-    if (tour.tourType === 'group') return; // Group tours have fixed dates, no need to fetch full month
+    if (tour.tourType === 'group') return;
     
     const loadAvailability = async () => {
       setIsLoadingAvail(true);
@@ -75,159 +70,142 @@ export default function BookingWidget({ tour }: BookingWidgetProps) {
     pricingBasis = 'per_person';
   }
 
-  const isGroup = tour.tourType === 'group';
-  const availableSeats = isGroup && tour.totalSeats ? tour.totalSeats - (tour.bookedSeats || 0) : null;
-  const isSoldOut = availableSeats !== null && availableSeats <= 0;
+  const advancePayment30 = Math.round(totalPrice * 0.3);
 
-  const handleBooking = async (e: React.FormEvent) => {
+  const isGroup = tour.tourType === 'group';
+  const availableSeats = isGroup ? (tour.totalSeats ?? 8) - (tour.bookedSeats || 0) : null;
+  const isSoldOut = availableSeats !== null && availableSeats <= 0;
+  const isExceedingSeats = availableSeats !== null && pax > availableSeats;
+
+  const handleProceedToCheckout = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!date || !name || !email || !phone) {
-      setError("Please fill out all required fields.");
+    if (!date) {
+      setError("Please select a date for your expedition.");
       return;
     }
-    
+
+    // Group tour seat capacity check
+    if (tour.tourType === 'group') {
+      const totalSeats = tour.totalSeats ?? 8;
+      const bookedSeats = tour.bookedSeats || 0;
+      const seatsLeft = totalSeats - bookedSeats;
+
+      if (seatsLeft <= 0) {
+        setError("Sorry, this group tour is fully booked.");
+        return;
+      }
+
+      if (pax > seatsLeft) {
+        setError(`Only ${seatsLeft} seat${seatsLeft === 1 ? '' : 's'} available.`);
+        return;
+      }
+    }
+
     setError("");
-    
+
     // Client-side availability verification for private tours
     if (tour.tourType === 'private') {
-       const dayAvail = availability[date];
-       if (dayAvail) {
-         const jeepsNeeded = Math.ceil(pax / dayAvail.maxPaxPerJeep);
-         if (jeepsNeeded > dayAvail.remainingJeeps) {
-           setError(`Not enough jeeps available on this date. We need ${jeepsNeeded} jeeps for ${pax} passengers, but only ${dayAvail.remainingJeeps} are left.`);
-           return;
-         }
-       }
+      const dayAvail = availability[date];
+      if (dayAvail) {
+        const jeepsNeeded = Math.ceil(pax / dayAvail.maxPaxPerJeep);
+        if (jeepsNeeded > dayAvail.remainingJeeps) {
+          setError(`Not enough jeeps available on this date. We need ${jeepsNeeded} jeeps for ${pax} passengers, but only ${dayAvail.remainingJeeps} are left.`);
+          return;
+        }
+      }
     }
 
-    setIsSubmitting(true);
-
-    const result = await createBooking({
-      tourId: tour.id || tour.slug,
-      tourName: tour.title,
-      tourType: tour.tourType || 'private',
-      includesMeals: !!tour.pricing.perPersonWithMeals ? includesMeals : false,
-      pricingBasis,
-      dateStr: date,
-      pax,
-      totalPrice,
-      customerName: name,
-      customerEmail: email,
-      customerPhone: phone,
+    const queryParams = new URLSearchParams({
+      tourSlug: tour.slug,
+      date: date,
+      pax: pax.toString(),
+      includesMeals: includesMeals.toString(),
     });
 
-    setIsSubmitting(false);
-
-    if (result.success) {
-      setSuccess(true);
-    } else {
-      setError(result.error || "An error occurred.");
-    }
+    router.push(`/checkout?${queryParams.toString()}`);
   };
 
-  if (success) {
-    return (
-      <div className="sticky top-28 glass-panel p-8 rounded-3xl border border-green-500/30 bg-green-500/5 text-center">
-        <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-500">
-          <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-        <h3 className="text-2xl font-bold text-white mb-2">Booking Requested!</h3>
-        <p className="text-slate-300 text-sm mb-6">
-          We have received your reservation for {tour.title} on {date}. An email confirmation has been sent.
-        </p>
-        <p className="text-orange-400 font-semibold mb-2">Total to pay on arrival: {totalPrice.toLocaleString()} LKR</p>
-        <button 
-          onClick={() => setSuccess(false)}
-          className="w-full mt-4 bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-xl font-bold transition-colors"
-        >
-          Book Another Date
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="sticky top-28 glass-panel p-8 rounded-3xl border border-orange-500/20 shadow-2xl">
-      <h3 className="text-2xl font-bold text-white mb-2">Book Your Adventure</h3>
-      <p className="text-slate-400 text-sm mb-6">
-        {isSoldOut ? (
-          <span className="text-red-400 font-bold bg-red-500/10 px-2 py-1 rounded">Fully Booked</span>
-        ) : availableSeats !== null ? (
-          <span className="text-orange-400 font-medium bg-orange-500/10 px-2 py-1 rounded">Only {availableSeats} seats left! Secure your spot.</span>
-        ) : (
-          "Secure your spot today."
+    <div className="bg-[#0e1710] border border-[#18261a] p-7 rounded-sm shadow-2xl relative font-sans">
+      <div className="flex justify-between items-start mb-4">
+        <div>
+          <h3 className="text-2xl font-black text-white uppercase font-display tracking-tight">Book Your Expedition</h3>
+          <p className="text-[#809483] text-xs font-mono tracking-wider uppercase mt-1">Instant Online Reservation</p>
+        </div>
+        {isSoldOut && (
+          <span className="text-red-400 font-mono text-[10px] font-bold bg-red-500/10 px-2 py-1 border border-red-500/30 uppercase">Fully Booked</span>
         )}
-      </p>
+      </div>
       
       {/* Tour Options Selector */}
-      <div className="space-y-4 mb-6">
-        {!!tour.pricing.perPersonWithMeals && (
-          <div>
-            <label className="text-xs text-slate-400 font-semibold uppercase mb-2 block">Meal Options</label>
-            <div className="grid grid-cols-2 gap-2">
-              <button 
-                type="button"
-                onClick={() => setIncludesMeals(true)}
-                className={`p-2 rounded-lg border text-sm transition-colors ${includesMeals ? 'bg-blue-500/20 border-blue-500 text-blue-400' : 'bg-slate-900 border-slate-800 text-slate-400'}`}
-              >
-                With Meals
-              </button>
-              <button 
-                type="button"
-                onClick={() => setIncludesMeals(false)}
-                className={`p-2 rounded-lg border text-sm transition-colors ${!includesMeals ? 'bg-blue-500/20 border-blue-500 text-blue-400' : 'bg-slate-900 border-slate-800 text-slate-400'}`}
-              >
-                Without Meals
-              </button>
-            </div>
+      {!!tour.pricing.perPersonWithMeals && (
+        <div className="mb-6">
+          <label className="text-[10px] text-[#647466] font-mono font-bold uppercase tracking-widest mb-2 block">Meal Plan</label>
+          <div className="grid grid-cols-2 gap-2 font-mono text-xs">
+            <button 
+              type="button"
+              onClick={() => setIncludesMeals(true)}
+              className={`py-2.5 px-3 rounded-sm border uppercase transition-colors font-bold ${includesMeals ? 'bg-[#f97316]/10 border-[#f97316] text-[#f97316]' : 'bg-[#080d09] border-[#18261a] text-[#809483] hover:text-white'}`}
+            >
+              With Meals
+            </button>
+            <button 
+              type="button"
+              onClick={() => setIncludesMeals(false)}
+              className={`py-2.5 px-3 rounded-sm border uppercase transition-colors font-bold ${!includesMeals ? 'bg-[#f97316]/10 border-[#f97316] text-[#f97316]' : 'bg-[#080d09] border-[#18261a] text-[#809483] hover:text-white'}`}
+            >
+              Without Meals
+            </button>
           </div>
+        </div>
+      )}
+
+      {/* Total Estimate Display */}
+      <div className="bg-[#080d09] p-5 rounded-sm mb-6 border border-[#18261a]">
+        <div className="flex justify-between items-baseline mb-1">
+          <span className="text-[#647466] text-xs font-mono uppercase tracking-wider font-bold">Total Estimate</span>
+          <div className="text-right">
+            <span className="text-2xl sm:text-3xl font-black text-white font-mono">{totalPrice.toLocaleString()}</span>
+            <span className="text-[#f97316] font-mono font-bold ml-1 text-xs">LKR</span>
+          </div>
+        </div>
+        {tour.tourType === 'private' && cabsNeeded > 1 && (
+          <p className="text-[11px] text-[#f97316] font-mono mt-1">Requires {cabsNeeded} Cabs (Max 8 pax per cab)</p>
         )}
-      </div>
-
-      <div className="bg-slate-950/50 p-6 rounded-2xl mb-8 border border-slate-800">
-        <div className="flex justify-between items-end mb-2">
-          <div className="flex flex-col">
-            <span className="text-slate-400 text-sm">Total Estimate</span>
-            {tour.tourType === 'private' && cabsNeeded > 1 && (
-              <span className="text-xs text-orange-400 font-medium mt-1">Requires {cabsNeeded} Cabs (Max 8 per cab)</span>
-            )}
-          </div>
-          <span className="text-3xl font-black text-white">{totalPrice.toLocaleString()}</span>
-        </div>
-        <div className="flex justify-end">
-          <span className="text-orange-500 font-bold">LKR</span>
+        <div className="pt-2 border-t border-[#18261a] mt-3 flex justify-between items-center text-[11px] font-mono text-[#809483]">
+          <span>30% Advance to Lock Date:</span>
+          <span className="text-white font-bold">LKR {advancePayment30.toLocaleString()}</span>
         </div>
       </div>
 
-      <form onSubmit={handleBooking} className="space-y-4 mb-6">
+      <form onSubmit={handleProceedToCheckout} className="space-y-4 mb-4">
         {error && (
-          <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200 text-sm">
+          <div className="p-3 bg-red-500/10 border border-red-500/40 rounded-sm text-red-300 text-xs font-mono">
             {error}
           </div>
         )}
         
-        <div className={`bg-slate-900 p-2 rounded-xl border border-slate-700 relative transition-colors ${tour.tourType === 'private' ? 'focus-within:border-orange-500' : 'opacity-70'}`}>
-          <label className="text-xs text-slate-500 absolute top-2 left-4 font-semibold uppercase">
+        {/* Date Selector */}
+        <div className="bg-[#080d09] p-3 rounded-sm border border-[#18261a] relative focus-within:border-[#f97316] transition-colors">
+          <label className="text-[10px] text-[#647466] font-mono font-bold uppercase tracking-widest block mb-1">
             {tour.tourType === 'group' ? 'Scheduled Date' : 'Select Date'}
           </label>
           <div 
             onClick={() => { if (tour.tourType === 'private') setShowCalendar(true); }}
-            className={`w-full bg-transparent text-white pt-6 pb-2 px-4 focus:outline-none font-medium flex items-center justify-between ${tour.tourType === 'private' ? 'cursor-pointer' : ''}`}
+            className={`w-full bg-transparent text-white font-mono text-sm focus:outline-none flex items-center justify-between ${tour.tourType === 'private' ? 'cursor-pointer' : ''}`}
           >
-            <span>{date ? format(parseISO(date), "MMM do, yyyy") : <span className="text-slate-600">Select Date</span>}</span>
-            {tour.tourType === 'private' && <CalendarIcon className="w-5 h-5 text-slate-500" />}
+            <span>{date ? format(parseISO(date), "MMMM do, yyyy") : <span className="text-[#647466]">Choose Expedition Date</span>}</span>
+            {tour.tourType === 'private' && <CalendarIcon className="w-4 h-4 text-[#f97316]" />}
           </div>
         </div>
 
         {/* Custom Calendar Inline Popover */}
         {showCalendar && tour.tourType === 'private' && (
-          <div className="bg-slate-950 border border-slate-700 rounded-xl p-4 relative shadow-2xl">
+          <div className="bg-[#080d09] border border-[#18261a] rounded-sm p-4 relative shadow-2xl z-50">
             <button 
               type="button"
               onClick={() => setShowCalendar(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white"
+              className="absolute top-4 right-4 text-[#647466] hover:text-white"
             >
               <X className="w-5 h-5" />
             </button>
@@ -235,19 +213,19 @@ export default function BookingWidget({ tour }: BookingWidgetProps) {
             <style dangerouslySetInnerHTML={{
               __html: `
                 .rdp { --rdp-cell-size: 35px; margin: 0; }
-                .rdp-day_selected { background-color: #f97316 !important; font-weight: bold; }
+                .rdp-day_selected { background-color: #f97316 !important; font-weight: bold; color: #0b120c !important; }
                 .rdp-nav_button { color: #f97316; }
-                .rdp-caption_label { font-size: 1rem; font-weight: bold; color: white; }
-                .rdp-head_cell { font-size: 0.7rem; color: #94a3b8; }
-                .rdp-day { color: white; border-radius: 8px; }
-                .rdp-day_disabled { color: #475569; opacity: 0.5; }
+                .rdp-caption_label { font-size: 0.9rem; font-weight: bold; color: white; text-transform: uppercase; font-family: var(--font-mono); }
+                .rdp-head_cell { font-size: 0.7rem; color: #647466; font-family: var(--font-mono); }
+                .rdp-day { color: white; border-radius: 2px; }
+                .rdp-day_disabled { color: #334155; opacity: 0.4; }
               `
             }} />
             
             {isLoadingAvail && (
-              <div className="absolute inset-0 bg-slate-950/80 z-10 flex flex-col items-center justify-center rounded-xl">
-                <Loader2 className="w-8 h-8 text-orange-500 animate-spin mb-2" />
-                <span className="text-xs text-slate-400">Loading availability...</span>
+              <div className="absolute inset-0 bg-[#0b120c]/80 z-10 flex flex-col items-center justify-center rounded-sm">
+                <Loader2 className="w-6 h-6 text-[#f97316] animate-spin mb-2" />
+                <span className="text-xs text-[#809483] font-mono">Checking availability...</span>
               </div>
             )}
 
@@ -271,101 +249,65 @@ export default function BookingWidget({ tour }: BookingWidgetProps) {
                 const jeepsNeeded = Math.ceil(pax / dayAvail.maxPaxPerJeep);
                 return dayAvail.remainingJeeps < jeepsNeeded;
               }}
-              modifiers={{
-                low: (day) => {
-                  const dStr = format(day, "yyyy-MM-dd");
-                  const dayAvail = availability[dStr];
-                  if (!dayAvail) return false;
-                  return dayAvail.remainingJeeps === 1;
-                }
-              }}
-              modifiersStyles={{
-                low: { border: '1px solid #f97316', color: '#f97316' }
-              }}
             />
-            <div className="text-[10px] text-slate-500 text-center mt-2">Dates with low capacity are outlined in orange.</div>
           </div>
         )}
         
-        <div className="bg-slate-900 p-2 rounded-xl border border-slate-700 relative focus-within:border-orange-500 transition-colors">
-           <label className="text-xs text-slate-500 absolute top-2 left-4 font-semibold uppercase">Passengers</label>
-           <input 
-            type="number" 
-            min="1"
-            max={availableSeats !== null ? availableSeats : 100}
-            required
-            disabled={isSoldOut}
-            value={pax}
-            onChange={(e) => {
-              let val = parseInt(e.target.value) || 1;
-              if (availableSeats !== null && val > availableSeats) {
-                val = availableSeats;
-              }
-              setPax(val);
-            }}
-            className="w-full bg-transparent text-white pt-6 pb-2 px-4 focus:outline-none font-medium disabled:opacity-50" 
-          />
+        {/* Passengers Selector */}
+        <div className="bg-[#080d09] p-3 rounded-sm border border-[#18261a] relative focus-within:border-[#f97316] transition-colors">
+          <label className="text-[10px] text-[#647466] font-mono font-bold uppercase tracking-widest block mb-1">
+            Passengers (Pax)
+          </label>
+          <div className="flex items-center justify-between">
+            <input 
+              type="number" 
+              min="1"
+              max={availableSeats !== null ? availableSeats : 100}
+              required
+              disabled={isSoldOut}
+              value={pax}
+              onChange={(e) => {
+                const val = parseInt(e.target.value) || 1;
+                setPax(val);
+                if (availableSeats !== null && val > availableSeats) {
+                  setError(`Only ${availableSeats} seat${availableSeats === 1 ? '' : 's'} available.`);
+                } else {
+                  setError("");
+                }
+              }}
+              className="bg-transparent text-white font-mono text-sm focus:outline-none w-full" 
+            />
+            <Users className="w-4 h-4 text-[#f97316] shrink-0" />
+          </div>
         </div>
 
-        <div className="bg-slate-900 p-2 rounded-xl border border-slate-700 relative focus-within:border-orange-500 transition-colors">
-           <label className="text-xs text-slate-500 absolute top-2 left-4 font-semibold uppercase">Full Name</label>
-           <input 
-            type="text" 
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="John Doe"
-            className="w-full bg-transparent text-white pt-6 pb-2 px-4 focus:outline-none font-medium" 
-          />
-        </div>
-
-        <div className="bg-slate-900 p-2 rounded-xl border border-slate-700 relative focus-within:border-orange-500 transition-colors">
-           <label className="text-xs text-slate-500 absolute top-2 left-4 font-semibold uppercase">Email Address</label>
-           <input 
-            type="email" 
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="john@example.com"
-            className="w-full bg-transparent text-white pt-6 pb-2 px-4 focus:outline-none font-medium" 
-          />
-        </div>
-
-        <div className="bg-slate-900 p-2 rounded-xl border border-slate-700 relative focus-within:border-orange-500 transition-colors">
-           <label className="text-xs text-slate-500 absolute top-2 left-4 font-semibold uppercase">WhatsApp / Phone</label>
-           <input 
-            type="tel" 
-            required
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+94 7X XXX XXXX"
-            className="w-full bg-transparent text-white pt-6 pb-2 px-4 focus:outline-none font-medium" 
-          />
-        </div>
-
+        {/* Proceed to Checkout Button */}
         <button 
           type="submit"
-          disabled={isSubmitting || isSoldOut}
-          className={`w-full mt-4 py-4 rounded-xl font-bold text-lg transition-all flex justify-center items-center gap-2 ${
-            isSoldOut 
-              ? 'bg-slate-800 text-slate-500 cursor-not-allowed' 
-              : 'bg-orange-500 hover:bg-orange-600 text-white shadow-[0_0_20px_rgba(249,115,22,0.4)] disabled:opacity-50'
+          disabled={isSoldOut || isExceedingSeats}
+          className={`w-full mt-4 py-4 px-6 rounded-sm font-mono font-bold text-xs tracking-[0.15em] uppercase transition-all flex justify-center items-center gap-2 ${
+            isSoldOut || isExceedingSeats
+              ? 'bg-[#18261a] text-[#647466] cursor-not-allowed border border-[#18261a]' 
+              : 'bg-[#f97316] hover:bg-[#ea580c] text-[#0b120c] shadow-lg font-black'
           }`}
         >
-          {isSubmitting ? (
-            <><Loader2 className="w-5 h-5 animate-spin" /> Processing...</>
-          ) : isSoldOut ? (
+          {isSoldOut ? (
             "Sold Out"
+          ) : isExceedingSeats ? (
+            `Only ${availableSeats} Seats Available`
           ) : (
-            "Complete Reservation"
+            <>
+              <span>PROCEED TO CHECKOUT</span>
+              <ArrowRight className="w-4 h-4" />
+            </>
           )}
         </button>
       </form>
       
-      <div className="mt-4 flex items-start gap-3 bg-blue-500/10 p-4 rounded-xl border border-blue-500/20">
-        <Info className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
-        <p className="text-xs text-blue-200 leading-relaxed">
-          No payment required right now. Secure your date and pay in cash upon arrival.
+      {/* 30% advance payment notice text under button */}
+      <div className="mt-4 p-3 bg-[#121f14] border border-[#1e3323] rounded-sm text-center">
+        <p className="text-[11px] font-mono text-[#a3b3a5] leading-relaxed">
+          <strong className="text-[#f97316] font-bold">30% advance payment</strong> only for booking or you can pay full payment.
         </p>
       </div>
     </div>
