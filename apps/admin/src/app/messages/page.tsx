@@ -5,6 +5,7 @@ import { fetchInquiries, updateInquiryStatus, deleteInquiry } from "@/actions/me
 import { Inquiry } from "@belihuloya/core";
 import { format } from "date-fns";
 import { 
+  Mail, MessageSquare, Phone, Calendar, Users, MapPin, 
   Trash2, CheckCircle2, Clock, Search, RefreshCw, Loader2, Filter,
   ExternalLink
 } from "lucide-react";

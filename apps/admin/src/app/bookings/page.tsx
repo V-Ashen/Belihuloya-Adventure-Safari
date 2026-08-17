@@ -76,7 +76,8 @@ export default function BookingsManager() {
 
       <div className="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
         {bookings.length > 0 ? (
-          <table className="w-full text-left border-collapse min-w-[800px]">
+          <>
+            <table className="w-full text-left border-collapse min-w-[800px]">
             <thead>
               <tr className="bg-slate-900 border-b border-slate-800 text-slate-400 text-xs uppercase tracking-wider">
                 <th className="p-4 font-semibold">Customer Details</th>
