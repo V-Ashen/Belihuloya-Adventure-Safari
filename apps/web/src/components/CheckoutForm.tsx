@@ -9,6 +9,8 @@ import {
 import { createBooking } from "@/actions/booking";
 import { Tour } from "@belihuloya/core";
 import { useAuth } from "@/components/AuthProvider";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 interface CheckoutFormProps {
   tour: Tour | null;
@@ -137,6 +139,16 @@ export default function CheckoutForm({ tour, dateStr, paxParam, includesMealsPar
     setIsSubmitting(false);
 
     if (res.success && res.bookingId) {
+      // If account was created, auto-login
+      if (createAccount && password) {
+        try {
+          await signInWithEmailAndPassword(auth, email, password);
+        } catch (err) {
+          console.error("Auto-login failed:", err);
+          // We don't fail the booking, just log the error and proceed
+        }
+      }
+
       setBookingSuccess({
         bookingId: res.bookingId,
         tourTitle: tour.title,

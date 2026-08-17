@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAdminAuthStore } from "@/store/adminAuthStore";
@@ -7,10 +8,11 @@ import { clientAuth } from "@/lib/firebaseClient";
 import { signOut } from "firebase/auth";
 import { 
   LayoutDashboard, CalendarDays, Car, Package, Users, Settings, 
-  LogOut, MessageSquare, ShieldCheck, UserPlus, Shield, Crown 
+  LogOut, MessageSquare, ShieldCheck, UserPlus, Shield, Crown, Menu, X
 } from "lucide-react";
 
 export default function AdminSidebar() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const { user, roleName, roleCode, hasPermission } = useAdminAuthStore();
 
@@ -37,12 +39,26 @@ export default function AdminSidebar() {
 
   return (
     <>
-      {/* Desktop Sidebar */}
-      <aside className="w-full md:w-64 bg-slate-900 border-r border-slate-800 flex flex-col hidden md:flex shrink-0">
-        <div className="h-20 flex items-center px-6 border-b border-slate-800">
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar (Desktop & Mobile) */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 md:w-64 bg-slate-900 border-r border-slate-800 flex flex-col transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 shrink-0`}>
+        <div className="h-16 md:h-20 flex items-center justify-between px-6 border-b border-slate-800 shrink-0">
           <div className="text-xl font-bold text-white tracking-tighter flex items-center gap-1">
             Belihuloya<span className="text-orange-500">Admin</span>
           </div>
+          <button 
+            className="md:hidden p-2 text-slate-400 hover:text-white"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* User Info Badge */}
@@ -78,6 +94,7 @@ export default function AdminSidebar() {
               <Link
                 key={item.name}
                 href={item.href}
+                onClick={() => setIsMobileMenuOpen(false)}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all text-sm font-medium ${
                   isActive
                     ? "bg-slate-800 text-white font-bold shadow-md border border-slate-700/50"
@@ -102,13 +119,21 @@ export default function AdminSidebar() {
       </aside>
 
       {/* Mobile Header */}
-      <header className="h-16 md:hidden bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4">
-        <div className="text-lg font-bold text-white tracking-tighter">
-          Belihuloya<span className="text-orange-500">Admin</span>
+      <header className="h-16 md:hidden bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 shrink-0">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="p-2 -ml-2 text-slate-400 hover:text-white rounded-lg"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <div className="text-lg font-bold text-white tracking-tighter">
+            Belihuloya<span className="text-orange-500">Admin</span>
+          </div>
         </div>
         <button
           onClick={handleSignOut}
-          className="p-2 text-slate-400 hover:text-red-400 rounded-lg"
+          className="p-2 -mr-2 text-slate-400 hover:text-red-400 rounded-lg"
           title="Sign Out"
         >
           <LogOut className="w-5 h-5" />

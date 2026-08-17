@@ -80,42 +80,44 @@ export default async function AdminDashboard() {
         
         <div className="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
           {bookings && bookings.length > 0 ? (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-900 border-b border-slate-800 text-slate-400 text-xs uppercase tracking-wider">
-                  <th className="p-4 font-semibold">Customer</th>
-                  <th className="p-4 font-semibold">Tour</th>
-                  <th className="p-4 font-semibold">Date</th>
-                  <th className="p-4 font-semibold">Pax</th>
-                  <th className="p-4 font-semibold">Total</th>
-                  <th className="p-4 font-semibold">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/50 text-sm">
-                {bookings.slice(0, 5).map((b: any) => (
-                  <tr key={b.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="p-4 text-white font-medium">
-                      {b.customerName}
-                      <div className="text-xs text-slate-500">{b.customerPhone}</div>
-                    </td>
-                    <td className="p-4 text-slate-300">{b.tourName}</td>
-                    <td className="p-4 text-slate-300">{new Date(b.date).toLocaleDateString()}</td>
-                    <td className="p-4 text-slate-300">{b.pax}</td>
-                    <td className="p-4 text-slate-300 font-medium">{b.totalPrice.toLocaleString()} LKR</td>
-                    <td className="p-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold
-                        ${b.status === 'pending' ? 'bg-blue-500/20 text-blue-400' :
-                          b.status === 'confirmed' ? 'bg-green-500/20 text-green-400' :
-                          b.status === 'completed' ? 'bg-slate-500/20 text-slate-400' :
-                          'bg-red-500/20 text-red-400'
-                        }`}>
-                        {b.status}
-                      </span>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[800px]">
+                <thead>
+                  <tr className="bg-slate-900 border-b border-slate-800 text-slate-400 text-xs uppercase tracking-wider">
+                    <th className="p-4 font-semibold">Customer</th>
+                    <th className="p-4 font-semibold">Tour</th>
+                    <th className="p-4 font-semibold">Date</th>
+                    <th className="p-4 font-semibold">Pax</th>
+                    <th className="p-4 font-semibold">Total</th>
+                    <th className="p-4 font-semibold">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-800/50 text-sm">
+                  {bookings.slice(0, 5).map((b: any) => (
+                    <tr key={b.id} className="hover:bg-slate-800/30 transition-colors">
+                      <td className="p-4 text-white font-medium">
+                        {b.customerName}
+                        <div className="text-xs text-slate-500">{b.customerPhone}</div>
+                      </td>
+                      <td className="p-4 text-slate-300">{b.tourName}</td>
+                      <td className="p-4 text-slate-300">{new Date(b.date).toLocaleDateString()}</td>
+                      <td className="p-4 text-slate-300">{b.pax}</td>
+                      <td className="p-4 text-slate-300 font-medium">{b.totalPrice.toLocaleString()} LKR</td>
+                      <td className="p-4">
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold
+                          ${b.status === 'pending' ? 'bg-blue-500/20 text-blue-400' :
+                            b.status === 'confirmed' ? 'bg-green-500/20 text-green-400' :
+                            b.status === 'completed' ? 'bg-slate-500/20 text-slate-400' :
+                            'bg-red-500/20 text-red-400'
+                          }`}>
+                          {b.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
             <div className="p-8 text-center text-slate-500">
               No bookings found yet.
