@@ -10,6 +10,15 @@ const nextConfig: NextConfig = {
     ],
   },
   transpilePackages: ["@belihuloya/core"],
+  async redirects() {
+    return [
+      {
+        source: '/admin',
+        destination: 'https://belihuloya-adventure-safari-admin.vercel.app/',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
