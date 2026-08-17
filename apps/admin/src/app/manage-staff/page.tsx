@@ -7,12 +7,20 @@ import { fetchRoles, RoleDoc } from "@/actions/roles";
 import { getSecondaryAuth } from "@/lib/firebaseClient";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { Users, UserPlus, Shield, Lock, Trash2, Edit2, Loader2, RefreshCw, AlertCircle, Crown, Mail, Key } from "lucide-react";
+import Pagination from "@/components/Pagination";
 
 export default function ManageStaffPage() {
   const { roleCode, roleName, hasPermission, isLoading: authLoading } = useAdminAuthStore();
   const [users, setUsers] = useState<UserDoc[]>([]);
   const [roles, setRoles] = useState<RoleDoc[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+  
+  const totalPages = Math.ceil(users.length / ITEMS_PER_PAGE);
+  const paginatedUsers = users.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   // Invite Modal state
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -207,7 +215,7 @@ export default function ManageStaffPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-sm">
-                {users.map((u) => (
+                {paginatedUsers.map((u) => (
                   <tr key={u.uid} className="hover:bg-slate-800/30 transition-colors">
                     <td className="p-4 pl-6">
                       <div className="flex items-center gap-3">
@@ -298,6 +306,11 @@ export default function ManageStaffPage() {
               </tbody>
             </table>
           </div>
+          <Pagination 
+            currentPage={currentPage} 
+            totalPages={totalPages} 
+            onPageChange={setCurrentPage} 
+          />
         </div>
       )}
 

@@ -5,10 +5,10 @@ import { fetchInquiries, updateInquiryStatus, deleteInquiry } from "@/actions/me
 import { Inquiry } from "@belihuloya/core";
 import { format } from "date-fns";
 import { 
-  Mail, MessageSquare, Phone, Calendar, Users, MapPin, 
   Trash2, CheckCircle2, Clock, Search, RefreshCw, Loader2, Filter,
   ExternalLink
 } from "lucide-react";
+import Pagination from "@/components/Pagination";
 
 const parseDate = (d: any) => {
   if (!d) return new Date();
@@ -67,6 +67,18 @@ export default function MessagesPage() {
   });
 
   const unreadCount = inquiries.filter((i) => i.status === "new").length;
+
+  // Pagination Logic
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+  
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginatedInquiries = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter]);
 
   return (
     <div className="max-w-6xl mx-auto pb-12">
@@ -145,7 +157,7 @@ export default function MessagesPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Messages List (Left Col) */}
           <div className="lg:col-span-5 space-y-3">
-            {filtered.map((item) => {
+            {paginatedInquiries.map((item) => {
               const isSelected = selectedInquiry?.id === item.id;
               const formattedDate = format(parseDate(item.createdAt), "MMM d, yyyy h:mm a");
               
@@ -201,6 +213,14 @@ export default function MessagesPage() {
                 </div>
               );
             })}
+            
+            <div className="mt-4 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+              <Pagination 
+                currentPage={currentPage} 
+                totalPages={totalPages} 
+                onPageChange={setCurrentPage} 
+              />
+            </div>
           </div>
 
           {/* Detailed View (Right Col) */}

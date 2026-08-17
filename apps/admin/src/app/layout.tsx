@@ -3,6 +3,8 @@ import AdminAuthProvider from "@/components/AdminAuthProvider";
 import AdminSidebar from "@/components/AdminSidebar";
 import "./globals.css";
 
+import type { Metadata } from "next";
+
 const manrope = Manrope({ 
   subsets: ["latin"],
   variable: "--font-manrope", 
@@ -12,6 +14,14 @@ const sourceSerif4 = Source_Serif_4({
   subsets: ["latin"],
   variable: "--font-source-serif-4",
 });
+
+export const metadata: Metadata = {
+  title: "Admin Portal | Belihuloya Adventure Safari",
+  description: "Administrative dashboard for managing tours, bookings, and fleet.",
+  icons: {
+    icon: "/favicon.ico",
+  }
+};
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (

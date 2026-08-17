@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { getAllCustomers, CustomerProfile } from "@/actions/customers";
 import { Loader2, Users, UserCheck, UserMinus, Search, Mail, Phone, Calendar, ArrowUpDown } from "lucide-react";
+import Pagination from "@/components/Pagination";
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<CustomerProfile[]>([]);
@@ -49,6 +50,18 @@ export default function CustomersPage() {
     }
     return true;
   });
+
+  // Pagination Logic
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+  
+  const totalPages = Math.ceil(filteredCustomers.length / ITEMS_PER_PAGE);
+  const paginatedCustomers = filteredCustomers.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, activeTab]);
 
   return (
     <div className="space-y-6">
@@ -179,7 +192,7 @@ export default function CustomersPage() {
                   </td>
                 </tr>
               ) : (
-                filteredCustomers.map((customer) => (
+                paginatedCustomers.map((customer) => (
                   <tr key={customer.email} className="hover:bg-slate-800/30 transition-colors">
                     
                     {/* Name */}
@@ -247,6 +260,11 @@ export default function CustomersPage() {
               )}
             </tbody>
           </table>
+          <Pagination 
+            currentPage={currentPage} 
+            totalPages={totalPages} 
+            onPageChange={setCurrentPage} 
+          />
         </div>
       </div>
     </div>

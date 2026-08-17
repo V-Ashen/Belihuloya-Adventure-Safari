@@ -3,12 +3,20 @@
 import { useEffect, useState } from "react";
 import { getBookings, updateBookingStatus } from "@/actions/admin";
 import { Loader2, Search, Filter, Calendar } from "lucide-react";
+import Pagination from "@/components/Pagination";
 
 export default function BookingsManager() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [updating, setUpdating] = useState<string | null>(null);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+  
+  const totalPages = Math.ceil(bookings.length / ITEMS_PER_PAGE);
+  const paginatedBookings = bookings.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   useEffect(() => {
     fetchBookings();
@@ -80,7 +88,7 @@ export default function BookingsManager() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50 text-sm">
-              {bookings.map((b) => (
+              {paginatedBookings.map((b) => (
                 <tr key={b.id} className="hover:bg-slate-800/30 transition-colors group">
                   <td className="p-4">
                     <div className="text-white font-semibold">{b.customerName}</div>
@@ -128,6 +136,12 @@ export default function BookingsManager() {
               ))}
             </tbody>
           </table>
+          <Pagination 
+            currentPage={currentPage} 
+            totalPages={totalPages} 
+            onPageChange={setCurrentPage} 
+          />
+        </>
         ) : (
           <div className="p-12 text-center flex flex-col items-center">
             <div className="w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center mb-4">
