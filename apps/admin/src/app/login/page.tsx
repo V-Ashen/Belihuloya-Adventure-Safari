@@ -5,7 +5,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { clientAuth } from "@/lib/firebaseClient";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Lock, Mail, Loader2, ShieldCheck, AlertCircle, ArrowLeft } from "lucide-react";
+import { Lock, Mail, Loader2, ShieldCheck, AlertCircle } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -35,17 +35,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 relative">
-      {/* Back Button */}
-      <button 
-        onClick={() => window.history.back()}
-        className="absolute top-8 left-6 md:left-12 z-20 flex items-center gap-2 text-slate-400 hover:text-white transition-colors font-mono text-xs uppercase tracking-widest"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Go Back
-      </button>
-
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6 z-10">
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
           <div className="w-14 h-14 bg-orange-500/10 border border-orange-500/30 rounded-2xl flex items-center justify-center mx-auto text-orange-500 mb-4">
