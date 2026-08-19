@@ -47,17 +47,23 @@ export default function Navbar() {
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-6">
           <Link href={user ? "/profile" : "/login"} className="text-[#a3b3a5] hover:text-orange-500 transition-colors flex items-center gap-2 group">
-            <div className="bg-[#18261a] p-2 rounded-full group-hover:bg-orange-500/10 transition-colors">
-              <User className="w-5 h-5 group-hover:text-orange-500" />
-            </div>
-            {user && <span className="text-xs font-mono font-bold tracking-wider hidden lg:block uppercase">{user.displayName?.split(' ')[0] || 'Profile'}</span>}
+            {user ? (
+              <>
+                <div className="bg-[#18261a] p-2 rounded-full group-hover:bg-orange-500/10 transition-colors">
+                  <User className="w-5 h-5 group-hover:text-orange-500" />
+                </div>
+                <span className="text-xs font-mono font-bold tracking-wider hidden lg:block uppercase">{user.displayName?.split(' ')[0] || 'Profile'}</span>
+              </>
+            ) : (
+              <span className="text-sm font-mono font-bold tracking-wider uppercase hover:text-white">Sign In</span>
+            )}
           </Link>
           
           <Link
             href="/tours"
             className="inline-flex items-center bg-[#f97316] hover:bg-[#ea580c] text-black text-xs font-black tracking-[0.15em] uppercase px-7 py-3.5 rounded-none font-mono transition-colors"
           >
-            BOOK YOUR ADVENTURE
+            BOOK NOW
           </Link>
         </div>
 
@@ -108,7 +114,7 @@ export default function Navbar() {
             onClick={() => setIsMobileMenuOpen(false)}
             className="mt-4 flex justify-center bg-[#f97316] hover:bg-[#ea580c] text-black text-sm font-black tracking-[0.15em] uppercase px-7 py-5 rounded-none font-mono transition-colors"
           >
-            BOOK YOUR ADVENTURE
+            BOOK NOW
           </Link>
         </div>
       )}

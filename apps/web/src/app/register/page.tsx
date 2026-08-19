@@ -63,13 +63,13 @@ export default function RegisterPage() {
     <div className="min-h-screen pt-28 pb-20 px-6 flex items-center justify-center relative font-sans">
       
       {/* Back Button */}
-      <button 
-        onClick={() => window.history.back()}
-        className="absolute top-8 left-6 md:left-12 z-20 flex items-center gap-2 text-white/70 hover:text-white transition-colors font-mono text-xs uppercase tracking-widest"
+      <Link 
+        href="/"
+        className="absolute top-28 left-6 md:left-12 z-20 flex items-center gap-2 text-white/70 hover:text-white transition-colors font-mono text-xs uppercase tracking-widest"
       >
         <ArrowLeft className="w-4 h-4" />
-        Go Back
-      </button>
+        Back to Home
+      </Link>
 
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
