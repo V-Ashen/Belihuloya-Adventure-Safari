@@ -4,19 +4,32 @@ import { useEffect, useState } from "react";
 import { getBookings, updateBookingStatus } from "@/actions/admin";
 import { Loader2, Search, Filter, Calendar } from "lucide-react";
 import Pagination from "@/components/Pagination";
+import Link from "next/link";
 
 export default function BookingsManager() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [updating, setUpdating] = useState<string | null>(null);
+  
+  // Filter & Search State
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
   
-  const totalPages = Math.ceil(bookings.length / ITEMS_PER_PAGE);
-  const paginatedBookings = bookings.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  const filteredBookings = bookings.filter(b => {
+    const matchesStatus = filterStatus === "all" || b.status === filterStatus;
+    const matchesSearch = b.customerName?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          b.customerEmail?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          b.tourName?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesStatus && matchesSearch;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredBookings.length / ITEMS_PER_PAGE));
+  const paginatedBookings = filteredBookings.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   useEffect(() => {
     fetchBookings();
@@ -59,23 +72,46 @@ export default function BookingsManager() {
           <h1 className="text-3xl font-bold text-white mb-1">Bookings Manager</h1>
           <p className="text-slate-400">Review and manage all incoming tour reservations.</p>
         </div>
-        <div className="flex gap-3 w-full md:w-auto">
+        <div className="flex flex-wrap gap-3 w-full md:w-auto">
+          <Link href="/fleet" className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
+            <Calendar className="w-4 h-4" />
+            Fleet Calendar
+          </Link>
           <div className="relative w-full md:w-64">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input 
               type="text" 
-              placeholder="Search bookings..." 
-              className="w-full bg-slate-900 border border-slate-800 text-white pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:border-orange-500 text-sm"
+              placeholder="Search bookings..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full bg-slate-900 border border-slate-800 text-white pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:border-orange-500 text-sm h-full min-h-[40px]"
             />
           </div>
-          <button className="bg-slate-900 border border-slate-800 text-slate-300 px-3 py-2 rounded-lg flex items-center justify-center">
-            <Filter className="w-4 h-4" />
-          </button>
+          <div className="relative w-full md:w-auto">
+            <Filter className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <select 
+              value={filterStatus}
+              onChange={(e) => {
+                setFilterStatus(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full md:w-auto bg-slate-900 border border-slate-800 text-slate-300 pl-10 pr-8 py-2 rounded-lg focus:outline-none focus:border-orange-500 appearance-none text-sm h-full min-h-[40px] cursor-pointer"
+            >
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
         </div>
       </div>
 
       <div className="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
-        {bookings.length > 0 ? (
+        {filteredBookings.length > 0 ? (
           <>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[800px]">

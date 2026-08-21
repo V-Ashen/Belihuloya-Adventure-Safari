@@ -1,11 +1,14 @@
 import { getBookings } from "@/actions/admin";
 import { DollarSign, Users, Calendar, TrendingUp } from "lucide-react";
 import Link from "next/link";
+import ExportReportButton from "@/components/ExportReportButton";
+
+export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard() {
   const result = await getBookings();
   const bookings = result.success ? result.bookings : [];
-  
+
   // Calculate some basic stats
   const pendingBookings = bookings?.filter((b: any) => b.status === "pending").length || 0;
   const totalRevenue = bookings?.reduce((sum: number, b: any) => sum + (b.totalPrice || 0), 0) || 0;
@@ -19,9 +22,7 @@ export default async function AdminDashboard() {
           <p className="text-slate-400">Welcome back, Admin. Here is what's happening today.</p>
         </div>
         <div className="flex gap-3">
-          <button className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-            Export Report
-          </button>
+          <ExportReportButton bookings={bookings || []} />
         </div>
       </div>
 
@@ -75,9 +76,9 @@ export default async function AdminDashboard() {
       <div className="mt-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-white">Recent Bookings</h2>
-          <Link href="/admin/bookings" className="text-orange-500 hover:text-orange-400 text-sm font-medium">View All →</Link>
+          <Link href="/bookings" className="text-orange-500 hover:text-orange-400 text-sm font-medium">View All →</Link>
         </div>
-        
+
         <div className="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
           {bookings && bookings.length > 0 ? (
             <div className="overflow-x-auto">
@@ -107,8 +108,8 @@ export default async function AdminDashboard() {
                         <span className={`px-2 py-1 rounded-full text-xs font-semibold
                           ${b.status === 'pending' ? 'bg-blue-500/20 text-blue-400' :
                             b.status === 'confirmed' ? 'bg-green-500/20 text-green-400' :
-                            b.status === 'completed' ? 'bg-slate-500/20 text-slate-400' :
-                            'bg-red-500/20 text-red-400'
+                              b.status === 'completed' ? 'bg-slate-500/20 text-slate-400' :
+                                'bg-red-500/20 text-red-400'
                           }`}>
                           {b.status}
                         </span>
@@ -132,7 +133,7 @@ export default async function AdminDashboard() {
 function ClockIcon(props: any) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
     </svg>
   );
 }
